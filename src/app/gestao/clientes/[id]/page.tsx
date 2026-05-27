@@ -19,17 +19,22 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params
   const session = await getStaffSession()
-  const client = db.clients.get(id)
+  const client = await db.clients.get(id)
   if (!client) notFound()
+  // Case managers can only open their own clients.
+  if (session?.role === 'case_manager' && client.assignedTo !== session.sub) notFound()
 
-  const events = db.events.byClient(id)
-  const deadlines = db.deadlines.byClient(id)
+  const [events, deadlines, manager] = await Promise.all([
+    db.events.byClient(id),
+    db.deadlines.byClient(id),
+    client.assignedTo ? db.staff.get(client.assignedTo) : Promise.resolve(undefined),
+  ])
   const pct = progressPercent(client)
   const complete = isCaseComplete(client)
   const nowIso = new Date().toISOString()
 
   return (
-    <StaffShell staffName={session?.name ?? 'Equipe'}>
+    <StaffShell staffName={session?.name ?? 'Equipe'} role={session?.role}>
       <Link
         href="/gestao/clientes"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -105,7 +110,7 @@ export default async function ClientDetailPage({
               <Info label="E-mail" value={client.email} />
               <Info label="Telefone" value={client.phone} />
               <Info label="WhatsApp" value={client.whatsapp} />
-              <Info label="Responsável" value={client.assignedTo} />
+              <Info label="Responsável" value={manager?.name ?? null} />
               <Info label="Cliente desde" value={formatDate(client.createdAt)} />
             </dl>
           </section>

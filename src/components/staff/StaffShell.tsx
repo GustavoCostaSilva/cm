@@ -1,12 +1,15 @@
 import Link from 'next/link'
 import { LogoutButton } from '@/components/LogoutButton'
 import { StaffNav } from './StaffNav'
+import type { StaffRole } from '@/lib/session'
 
 export function StaffShell({
   staffName,
+  role,
   children,
 }: {
   staffName: string
+  role?: StaffRole
   children: React.ReactNode
 }) {
   return (
@@ -25,12 +28,10 @@ export function StaffShell({
                 </p>
               </div>
             </Link>
-            <StaffNav />
+            <StaffNav role={role} />
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-muted-foreground md:inline">
-              {staffName}
-            </span>
+            <span className="hidden text-sm text-muted-foreground md:inline">{staffName}</span>
             <LogoutButton endpoint="/api/auth/staff-logout" redirectTo="/gestao" />
           </div>
         </div>

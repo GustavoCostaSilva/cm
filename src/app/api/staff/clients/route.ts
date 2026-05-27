@@ -20,12 +20,16 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     )
   }
-  if (db.clients.getByPassport(passport)) {
+  if (await db.clients.getByPassport(passport)) {
     return NextResponse.json(
       { error: 'Já existe um cliente com este passaporte.' },
       { status: 409 },
     )
   }
+
+  // Admin may assign to any staff id; a case manager owns the clients they create.
+  const assignedTo =
+    session.role === 'admin' && body.assignedTo ? String(body.assignedTo) : session.sub
 
   const now = new Date().toISOString()
   const stages = freshStages()
@@ -41,13 +45,13 @@ export async function POST(req: NextRequest) {
     phone: body.phone ? String(body.phone).trim() : null,
     whatsapp: body.whatsapp ? String(body.whatsapp).replace(/\D/g, '') : null,
     caseType: body.caseType ? String(body.caseType).trim() : null,
-    assignedTo: body.assignedTo ? String(body.assignedTo).trim() : session.name,
+    assignedTo,
     status: 'active',
     createdAt: now,
     stages,
   }
-  db.clients.create(client)
-  db.events.add({
+  await db.clients.create(client)
+  await db.events.add({
     id: randomUUID(),
     clientId: client.id,
     stageKey: null,

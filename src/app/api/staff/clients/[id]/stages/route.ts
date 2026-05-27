@@ -19,8 +19,11 @@ export async function POST(
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { id } = await params
-  const client = db.clients.get(id)
+  const client = await db.clients.get(id)
   if (!client) return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
+  if (session.role === 'case_manager' && client.assignedTo !== session.sub) {
+    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
+  }
 
   const body = await req.json().catch(() => ({}))
   const action = String(body.action ?? '')
@@ -36,19 +39,19 @@ export async function POST(
     newEvents.push({ id: randomUUID(), clientId: client.id, ...e })
 
   let mailKind: StageMailKind | null = null
-  let mailStageKey: StageKey | null = stageKey ?? null
+  const mailStageKey: StageKey | null = stageKey ?? null
   let mailMessage = message
 
-  const findStage = (k: StageKey) => stages.find((s) => s.key === k)
+  const findStage = (k: StageKey) => stages.find((st) => st.key === k)
 
   if (action === 'start') {
     if (!stageKey || !findStage(stageKey)) {
       return NextResponse.json({ error: 'Etapa inválida.' }, { status: 400 })
     }
-    const s = findStage(stageKey)!
-    s.status = 'active'
-    if (!s.startedAt) s.startedAt = now
-    s.completedAt = null
+    const st = findStage(stageKey)!
+    st.status = 'active'
+    if (!st.startedAt) st.startedAt = now
+    st.completedAt = null
     addEvent({
       stageKey,
       type: 'stage_started',
@@ -66,11 +69,11 @@ export async function POST(
     if (!stageKey || !findStage(stageKey)) {
       return NextResponse.json({ error: 'Etapa inválida.' }, { status: 400 })
     }
-    const s = findStage(stageKey)!
-    s.status = 'done'
-    if (!s.startedAt) s.startedAt = now
-    s.completedAt = now
-    if (message) s.note = message
+    const st = findStage(stageKey)!
+    st.status = 'done'
+    if (!st.startedAt) st.startedAt = now
+    st.completedAt = now
+    if (message) st.note = message
     addEvent({
       stageKey,
       type: 'stage_completed',
@@ -115,17 +118,15 @@ export async function POST(
     return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 })
   }
 
-  // Persist stage changes (only when they actually changed) and events.
   if (action === 'start' || action === 'complete') {
-    db.clients.update(client.id, { stages })
+    await db.clients.update(client.id, { stages })
   }
-  for (const e of newEvents) db.events.add(e)
+  for (const e of newEvents) await db.events.add(e)
 
-  // Send email notification if requested and the client has an address.
   let mail: { delivered: boolean; dev: boolean } | null = null
   if (mailKind && client.email) {
     const origin = new URL(req.url).origin
-    const office = db.office.get()
+    const office = await db.office.get()
     const key = mailStageKey ?? currentStage(client).key
     mail = await sendStageNotification({
       to: client.email,

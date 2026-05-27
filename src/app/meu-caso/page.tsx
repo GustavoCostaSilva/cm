@@ -33,13 +33,13 @@ function deadlineLabel(due: string): { text: string; tone: string } {
 export default async function MeuCasoPage() {
   const session = await getClientSession()
   if (!session) redirect('/')
-  const client = db.clients.get(session.sub)
+  const client = await db.clients.get(session.sub)
   if (!client) redirect('/')
 
-  const office = db.office.get()
-  const events = db.events.byClient(client.id).filter((e) => e.visibleToClient)
+  const office = await db.office.get()
+  const events = (await db.events.byClient(client.id)).filter((e) => e.visibleToClient)
   const nextDeadline =
-    db.deadlines.byClient(client.id).filter((d) => d.status === 'pending')[0] ?? null
+    (await db.deadlines.byClient(client.id)).filter((d) => d.status === 'pending')[0] ?? null
 
   const idx = currentStageIndex(client)
   const cur = client.stages[idx]

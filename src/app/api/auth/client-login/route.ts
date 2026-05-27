@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const client = db.clients.getByPassport(String(passport))
+  const client = await db.clients.getByPassport(String(passport))
   const dobNorm = normalizeDob(String(dob))
   if (!client || client.dateOfBirth !== dobNorm) {
     registerFailure(key)

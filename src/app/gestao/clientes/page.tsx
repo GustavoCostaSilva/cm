@@ -7,8 +7,18 @@ import { STAGE_LABELS } from '@/types'
 
 export default async function ClientesPage() {
   const session = await getStaffSession()
-  const clients = db.clients.all()
-  const deadlines = db.deadlines.all()
+  const [allClients, deadlines, staff] = await Promise.all([
+    db.clients.all(),
+    db.deadlines.all(),
+    db.staff.all(),
+  ])
+  const nameById = new Map(staff.map((m) => [m.id, m.name]))
+
+  // Case managers only see their own clients; admin sees everyone.
+  const clients =
+    session?.role === 'case_manager'
+      ? allClients.filter((c) => c.assignedTo === session.sub)
+      : allClients
 
   const rows: ClientRow[] = clients.map((c) => {
     const next =
@@ -21,7 +31,7 @@ export default async function ClientesPage() {
       passport: c.passport,
       caseType: c.caseType,
       status: c.status,
-      assignedTo: c.assignedTo,
+      assignedTo: c.assignedTo ? (nameById.get(c.assignedTo) ?? '—') : null,
       stageLabel: isCaseComplete(c) ? 'Concluído' : STAGE_LABELS[currentStage(c).key],
       progress: progressPercent(c),
       nextDeadline: next ? next.dueDate : null,
@@ -29,7 +39,7 @@ export default async function ClientesPage() {
   })
 
   return (
-    <StaffShell staffName={session?.name ?? 'Equipe'}>
+    <StaffShell staffName={session?.name ?? 'Equipe'} role={session?.role}>
       <ClientsTable rows={rows} />
     </StaffShell>
   )

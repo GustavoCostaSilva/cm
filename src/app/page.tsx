@@ -8,7 +8,7 @@ export default async function ClientLoginPage() {
   const session = await getClientSession()
   if (session) redirect('/meu-caso')
 
-  const office = db.office.get()
+  const office = await db.office.get()
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

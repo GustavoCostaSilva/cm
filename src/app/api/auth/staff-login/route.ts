@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   if (!email || !password) {
     return NextResponse.json({ error: 'Informe e-mail e senha.' }, { status: 400 })
   }
-  const user = db.staff.getByEmail(String(email))
+  const user = await db.staff.getByEmail(String(email))
   if (!user || !user.active || !verifyPassword(String(password), user.passwordHash)) {
     return NextResponse.json({ error: 'Credenciais inválidas.' }, { status: 401 })
   }

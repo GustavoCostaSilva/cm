@@ -5,6 +5,7 @@ import type {
   CaseEvent,
   Deadline,
   StaffUser,
+  StaffRole,
   OfficeConfig,
   StageProgress,
   ClientStatus,
@@ -20,8 +21,25 @@ const daysAgo = (n: number) => {
 const daysFromNow = (n: number) => daysAgo(-n)
 const ymd = (d: Date) => d.toISOString().slice(0, 10)
 
-const STAGE_DURATIONS = [7, 21, 30, 25, 12] // typical days per stage
-// How long ago a case started, indexed by its current stage.
+// ── staff (1 admin/gerência + case managers) ──
+const SEED_PASSWORD = 'govisa2026'
+interface StaffSeed {
+  id: string
+  name: string
+  email: string
+  role: StaffRole
+}
+const STAFF_SEED: StaffSeed[] = [
+  { id: 'staff_admin', name: 'Gerência GoVisa', email: 'admin@govisa.local', role: 'admin' },
+  { id: 'staff_marina', name: 'Dra. Marina Alves', email: 'marina@govisa.local', role: 'case_manager' },
+  { id: 'staff_rafael', name: 'Dr. Rafael Lima', email: 'rafael@govisa.local', role: 'case_manager' },
+  { id: 'staff_jeffrey', name: 'Mr. Jeffrey Weingrad', email: 'jeffrey@govisa.local', role: 'case_manager' },
+]
+const idByName: Record<string, string> = Object.fromEntries(
+  STAFF_SEED.map((m) => [m.name, m.id]),
+)
+
+const STAGE_DURATIONS = [7, 21, 30, 25, 12]
 const START_OFFSET = [3, 25, 65, 110, 150]
 
 function buildStages(current: number, complete: boolean): StageProgress[] {
@@ -55,7 +73,6 @@ const STAGE_DONE_NOTE: Record<string, string> = {
   audiencia: 'Audiência realizada. Defesa apresentada e caso aguardando decisão.',
   decisao: 'Decisão proferida. Cliente orientado sobre os próximos passos.',
 }
-
 const STAGE_ACTIVE_NOTE: Record<string, string> = {
   consulta: 'Em consulta inicial — avaliando os detalhes do seu caso.',
   documentacao: 'Reunindo e revisando seus documentos.',
@@ -72,22 +89,22 @@ interface Spec {
   phone: string
   whatsapp: string
   caseType: string
-  assignedTo: string
+  manager: string // case manager name
   current: number
   status: ClientStatus
   complete?: boolean
 }
 
 const SPECS: Spec[] = [
-  { fullName: 'Ana Beatriz Souza', passport: 'FN481223', dob: '1991-03-14', email: 'ana.souza@example.com', phone: '+55 11 98123-4567', whatsapp: '5511981234567', caseType: 'Asylum', assignedTo: 'Dra. Marina Alves', current: 0, status: 'active' },
-  { fullName: 'Carlos Mendes Oliveira', passport: 'GH772900', dob: '1985-11-02', email: 'carlos.mendes@example.com', phone: '+55 21 99622-1180', whatsapp: '5521996221180', caseType: 'Court — Removal Defense', assignedTo: 'Dr. Rafael Lima', current: 1, status: 'active' },
-  { fullName: 'Mariana Costa Lima', passport: 'FP315544', dob: '1993-07-22', email: 'mariana.lima@example.com', phone: '+55 31 98711-2031', whatsapp: '5531987112031', caseType: 'Adjustment of Status', assignedTo: 'Dra. Marina Alves', current: 2, status: 'active' },
-  { fullName: 'João Pedro Almeida', passport: 'GA908112', dob: '1979-01-30', email: 'joao.almeida@example.com', phone: '+55 11 99014-7782', whatsapp: '5511990147782', caseType: 'Court — Removal Defense', assignedTo: 'Mr. Jeffrey Weingrad', current: 3, status: 'active' },
-  { fullName: 'Fernanda Ribeiro', passport: 'FN660241', dob: '1996-05-09', email: 'fernanda.ribeiro@example.com', phone: '+55 41 98330-5512', whatsapp: '5541983305512', caseType: 'Work Permit (EAD)', assignedTo: 'Dr. Rafael Lima', current: 4, status: 'active' },
-  { fullName: 'Lucas Martins', passport: 'GB124870', dob: '1988-09-18', email: 'lucas.martins@example.com', phone: '+55 51 99880-2244', whatsapp: '5551998802244', caseType: 'Family Petition', assignedTo: 'Dra. Marina Alves', current: 2, status: 'paused' },
-  { fullName: 'Patrícia Gomes', passport: 'FP771039', dob: '1982-12-05', email: 'patricia.gomes@example.com', phone: '+55 11 97444-9001', whatsapp: '5511974449001', caseType: 'Adjustment of Status', assignedTo: 'Mr. Jeffrey Weingrad', current: 4, status: 'closed', complete: true },
-  { fullName: 'Rafael Teixeira', passport: 'GH205518', dob: '1994-04-27', email: 'rafael.teixeira@example.com', phone: '+55 19 98122-7766', whatsapp: '5519981227766', caseType: 'Asylum', assignedTo: 'Dr. Rafael Lima', current: 1, status: 'active' },
-  { fullName: 'Juliana Carvalho', passport: 'FN339907', dob: '1990-08-13', email: 'juliana.carvalho@example.com', phone: '+55 71 99655-3300', whatsapp: '5571996553300', caseType: 'Court — Removal Defense', assignedTo: 'Dra. Marina Alves', current: 3, status: 'active' },
+  { fullName: 'Ana Beatriz Souza', passport: 'FN481223', dob: '1991-03-14', email: 'ana.souza@example.com', phone: '+55 11 98123-4567', whatsapp: '5511981234567', caseType: 'Asylum', manager: 'Dra. Marina Alves', current: 0, status: 'active' },
+  { fullName: 'Carlos Mendes Oliveira', passport: 'GH772900', dob: '1985-11-02', email: 'carlos.mendes@example.com', phone: '+55 21 99622-1180', whatsapp: '5521996221180', caseType: 'Court — Removal Defense', manager: 'Dr. Rafael Lima', current: 1, status: 'active' },
+  { fullName: 'Mariana Costa Lima', passport: 'FP315544', dob: '1993-07-22', email: 'mariana.lima@example.com', phone: '+55 31 98711-2031', whatsapp: '5531987112031', caseType: 'Adjustment of Status', manager: 'Dra. Marina Alves', current: 2, status: 'active' },
+  { fullName: 'João Pedro Almeida', passport: 'GA908112', dob: '1979-01-30', email: 'joao.almeida@example.com', phone: '+55 11 99014-7782', whatsapp: '5511990147782', caseType: 'Court — Removal Defense', manager: 'Mr. Jeffrey Weingrad', current: 3, status: 'active' },
+  { fullName: 'Fernanda Ribeiro', passport: 'FN660241', dob: '1996-05-09', email: 'fernanda.ribeiro@example.com', phone: '+55 41 98330-5512', whatsapp: '5541983305512', caseType: 'Work Permit (EAD)', manager: 'Dr. Rafael Lima', current: 4, status: 'active' },
+  { fullName: 'Lucas Martins', passport: 'GB124870', dob: '1988-09-18', email: 'lucas.martins@example.com', phone: '+55 51 99880-2244', whatsapp: '5551998802244', caseType: 'Family Petition', manager: 'Dra. Marina Alves', current: 2, status: 'paused' },
+  { fullName: 'Patrícia Gomes', passport: 'FP771039', dob: '1982-12-05', email: 'patricia.gomes@example.com', phone: '+55 11 97444-9001', whatsapp: '5511974449001', caseType: 'Adjustment of Status', manager: 'Mr. Jeffrey Weingrad', current: 4, status: 'closed', complete: true },
+  { fullName: 'Rafael Teixeira', passport: 'GH205518', dob: '1994-04-27', email: 'rafael.teixeira@example.com', phone: '+55 19 98122-7766', whatsapp: '5519981227766', caseType: 'Asylum', manager: 'Dr. Rafael Lima', current: 1, status: 'active' },
+  { fullName: 'Juliana Carvalho', passport: 'FN339907', dob: '1990-08-13', email: 'juliana.carvalho@example.com', phone: '+55 71 99655-3300', whatsapp: '5571996553300', caseType: 'Court — Removal Defense', manager: 'Dra. Marina Alves', current: 3, status: 'active' },
 ]
 
 export const DEFAULT_OFFICE: OfficeConfig = {
@@ -101,10 +118,9 @@ export const DEFAULT_OFFICE: OfficeConfig = {
     'Você está sendo acompanhado e protegido pela equipe jurídica da Go Visa Law Firm. Este portal é um canal seguro e transparente sobre o andamento do seu caso. Em caso de qualquer dúvida, fale diretamente com o nosso escritório pelos contatos abaixo.',
 }
 
-function buildEvents(client: Client): CaseEvent[] {
+function buildEvents(client: Client, authorName: string): CaseEvent[] {
   const out: CaseEvent[] = []
   let n = 0
-  const author = client.assignedTo ?? 'Equipe GoVisa'
   const push = (e: Omit<CaseEvent, 'id' | 'clientId'>) =>
     out.push({ id: `${client.id}_ev${n++}`, clientId: client.id, ...e })
 
@@ -112,18 +128,18 @@ function buildEvents(client: Client): CaseEvent[] {
     stageKey: null,
     type: 'created',
     text: 'Caso aberto e cadastrado. Bem-vindo(a) ao portal de acompanhamento.',
-    author,
+    author: authorName,
     createdAt: client.createdAt,
     visibleToClient: true,
     notified: false,
   })
 
-  for (const s of client.stages) {
-    if (s.status === 'done') {
-      push({ stageKey: s.key, type: 'stage_started', text: `Etapa "${STAGE_LABELS[s.key]}" iniciada.`, author, createdAt: s.startedAt!, visibleToClient: true, notified: true })
-      push({ stageKey: s.key, type: 'stage_completed', text: STAGE_DONE_NOTE[s.key], author, createdAt: s.completedAt!, visibleToClient: true, notified: true })
-    } else if (s.status === 'active') {
-      push({ stageKey: s.key, type: 'stage_started', text: STAGE_ACTIVE_NOTE[s.key], author, createdAt: s.startedAt!, visibleToClient: true, notified: true })
+  for (const stage of client.stages) {
+    if (stage.status === 'done') {
+      push({ stageKey: stage.key, type: 'stage_started', text: `Etapa "${STAGE_LABELS[stage.key]}" iniciada.`, author: authorName, createdAt: stage.startedAt!, visibleToClient: true, notified: true })
+      push({ stageKey: stage.key, type: 'stage_completed', text: STAGE_DONE_NOTE[stage.key], author: authorName, createdAt: stage.completedAt!, visibleToClient: true, notified: true })
+    } else if (stage.status === 'active') {
+      push({ stageKey: stage.key, type: 'stage_started', text: STAGE_ACTIVE_NOTE[stage.key], author: authorName, createdAt: stage.startedAt!, visibleToClient: true, notified: true })
     }
   }
   return out
@@ -142,12 +158,8 @@ function buildDeadlines(client: Client, current: number): Deadline[] {
     audiencia: 'Audiência no tribunal',
     decisao: 'Acompanhamento da decisão',
   }
-
-  // One upcoming deadline tied to the current stage.
   out.push({ id: id(), clientId: client.id, title: titleByStage[stageKey], dueDate: ymd(daysFromNow(6 + current * 3)), status: 'pending', stageKey })
-  // A second, later milestone.
   out.push({ id: id(), clientId: client.id, title: 'Revisão de andamento do caso', dueDate: ymd(daysFromNow(34 + current * 2)), status: 'pending', stageKey: null })
-  // A couple of clients have an overdue item to exercise the UI.
   if (client.status === 'active' && (current === 1 || current === 3)) {
     out.push({ id: id(), clientId: client.id, title: 'Confirmar dados de contato', dueDate: ymd(daysAgo(3)), status: 'pending', stageKey: null })
   }
@@ -179,27 +191,25 @@ export function buildSeed(): SeedData {
       phone: spec.phone,
       whatsapp: spec.whatsapp,
       caseType: spec.caseType,
-      assignedTo: spec.assignedTo,
+      assignedTo: idByName[spec.manager] ?? null,
       status: spec.status,
       createdAt,
       stages,
     }
     clients.push(client)
-    events.push(...buildEvents(client))
+    events.push(...buildEvents(client, spec.manager))
     deadlines.push(...buildDeadlines(client, spec.current))
   })
 
-  const staff: StaffUser[] = [
-    {
-      id: 'staff_admin',
-      email: 'admin@govisa.local',
-      passwordHash: hashPassword('govisa2026'),
-      name: 'Equipe GoVisa',
-      role: 'admin',
-      active: true,
-      createdAt: iso(daysAgo(200)),
-    },
-  ]
+  const staff: StaffUser[] = STAFF_SEED.map((m) => ({
+    id: m.id,
+    email: m.email,
+    passwordHash: hashPassword(SEED_PASSWORD),
+    name: m.name,
+    role: m.role,
+    active: true,
+    createdAt: iso(daysAgo(200)),
+  }))
 
   return { clients, events, deadlines, staff, office: DEFAULT_OFFICE }
 }

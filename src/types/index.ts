@@ -85,7 +85,7 @@ export interface Client {
   stages: StageProgress[]
 }
 
-export type StaffRole = 'admin' | 'editor'
+export type StaffRole = 'admin' | 'case_manager'
 
 export interface StaffUser {
   id: string
