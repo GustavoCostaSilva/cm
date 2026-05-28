@@ -5,9 +5,16 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Plus, Trash2, Loader2, Pencil, Check, X } from 'lucide-react'
 import type { Deadline, StageKey } from '@/types'
-import { STAGE_KEYS, STAGE_LABELS } from '@/types'
+import { STAGE_KEYS, STAGE_LABELS, STAGE_SLA_HOURS, STAGE_DEADLINE_SUGGESTIONS } from '@/types'
 import { formatDate, daysUntil } from '@/lib/case-utils'
 import { cn } from '@/lib/utils'
+
+// Today + N days as a YYYY-MM-DD string in local time (for the date input).
+function addDaysISO(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export function DeadlineManager({
   clientId,
@@ -22,6 +29,26 @@ export function DeadlineManager({
   const [stageKey, setStageKey] = useState<StageKey | ''>('')
   const [notify, setNotify] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Track whether title/date were auto-filled from a stage suggestion, so
+  // changing the stage updates them but a manual edit is never overwritten.
+  const [titleAuto, setTitleAuto] = useState(false)
+  const [dateAuto, setDateAuto] = useState(false)
+
+  function onStageChange(k: StageKey | '') {
+    setStageKey(k)
+    if (!k) return
+    if (!title.trim() || titleAuto) {
+      setTitle(STAGE_DEADLINE_SUGGESTIONS[k])
+      setTitleAuto(true)
+    }
+    if (!dueDate || dateAuto) {
+      const hrs = STAGE_SLA_HOURS[k]?.normal ?? 0
+      if (hrs > 0) {
+        setDueDate(addDaysISO(Math.max(1, Math.ceil(hrs / 24))))
+        setDateAuto(true)
+      }
+    }
+  }
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
@@ -62,6 +89,8 @@ export function DeadlineManager({
         setDueDate('')
         setStageKey('')
         setNotify(false)
+        setTitleAuto(false)
+        setDateAuto(false)
         router.refresh()
       } else {
         const d = await res.json().catch(() => ({}))
@@ -252,32 +281,36 @@ export function DeadlineManager({
       </ul>
 
       <div className="mt-4 space-y-2 border-t border-border pt-4">
+        <select
+          value={stageKey}
+          onChange={(e) => onStageChange(e.target.value as StageKey | '')}
+          className="w-full rounded-lg border border-input bg-background px-2 py-2 text-sm outline-none focus:border-primary"
+        >
+          <option value="">Etapa (preenche uma sugestão)…</option>
+          {STAGE_KEYS.map((k) => (
+            <option key={k} value={k}>
+              {STAGE_LABELS[k]}
+            </option>
+          ))}
+        </select>
         <input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value)
+            setTitleAuto(false)
+          }}
           placeholder="Novo prazo (ex.: Enviar documentos)"
           className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
         />
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-          />
-          <select
-            value={stageKey}
-            onChange={(e) => setStageKey(e.target.value as StageKey | '')}
-            className="rounded-lg border border-input bg-background px-2 py-2 text-sm outline-none focus:border-primary"
-          >
-            <option value="">Geral</option>
-            {STAGE_KEYS.map((k) => (
-              <option key={k} value={k}>
-                {STAGE_LABELS[k]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => {
+            setDueDate(e.target.value)
+            setDateAuto(false)
+          }}
+          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+        />
         <label className="flex items-center gap-1.5 text-xs text-foreground">
           <input
             type="checkbox"

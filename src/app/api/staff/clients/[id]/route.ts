@@ -24,6 +24,7 @@ export async function PATCH(
   if (body.status === 'active' || body.status === 'paused' || body.status === 'closed') {
     patch.status = body.status as ClientStatus
   }
+  if (typeof body.fullName === 'string' && body.fullName.trim()) patch.fullName = body.fullName.trim()
   if (typeof body.email === 'string') patch.email = body.email.trim() || null
   if (typeof body.phone === 'string') patch.phone = body.phone.trim() || null
   if (typeof body.whatsapp === 'string') patch.whatsapp = body.whatsapp.replace(/\D/g, '') || null

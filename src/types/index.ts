@@ -102,6 +102,22 @@ export const STAGE_SLA_HOURS: Record<StageKey, { normal: number; urgent: number 
   acompanhamento: { normal: 0, urgent: 0 },
 }
 
+// Suggested deadline title per stage — pre-fills the Prazos form when a stage
+// is picked, so each stage has a ready-made deadline to start from.
+export const STAGE_DEADLINE_SUGGESTIONS: Record<StageKey, string> = {
+  onboarding: 'Concluir onboarding e abrir o processo',
+  coleta: 'Receber documentos do cliente',
+  elegibilidade: 'Confirmar elegibilidade do visto',
+  analise: 'Finalizar análise e estratégia do caso',
+  preenchimento: 'Concluir preenchimento dos formulários',
+  assinaturas: 'Coletar assinaturas do cliente',
+  revisao: 'Concluir revisão técnica',
+  correcao: 'Corrigir apontamentos da revisão',
+  validacao: 'Concluir validação final (dupla conferência)',
+  envio: 'Enviar processo ao USCIS/EOIR',
+  acompanhamento: 'Acompanhar recibos e decisão do USCIS',
+}
+
 // ─────────────────────────────────────────────────────────────
 // Client-facing milestones — friendly grouping of the 11 stages
 // ─────────────────────────────────────────────────────────────

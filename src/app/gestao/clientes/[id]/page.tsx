@@ -12,6 +12,7 @@ import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
 import { CaseControls } from '@/components/staff/CaseControls'
 import { AssignControls } from '@/components/staff/AssignControls'
+import { ClientInfoEditor } from '@/components/staff/ClientInfoEditor'
 import { StaffHistory } from '@/components/staff/StaffHistory'
 import { MessageThread } from '@/components/MessageThread'
 import { MessageComposer } from '@/components/MessageComposer'
@@ -177,17 +178,16 @@ export default async function ClientDetailPage({
             />
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">Informações</h2>
-            <dl className="space-y-2 text-sm">
-              <Info label="E-mail" value={client.email} />
-              <Info label="Telefone" value={client.phone} />
-              <Info label="WhatsApp" value={client.whatsapp} />
-              <Info label="Advogado" value={attorney?.name ?? null} />
-              <Info label="Case Manager" value={manager?.name ?? null} />
-              <Info label="Cliente desde" value={formatDate(client.createdAt)} />
-            </dl>
-          </section>
+          <ClientInfoEditor
+            clientId={client.id}
+            fullName={client.fullName}
+            email={client.email}
+            phone={client.phone}
+            whatsapp={client.whatsapp}
+            attorneyName={attorney?.name ?? null}
+            managerName={manager?.name ?? null}
+            createdAtLabel={formatDate(client.createdAt)}
+          />
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
@@ -202,11 +202,3 @@ export default async function ClientDetailPage({
   )
 }
 
-function Info({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium text-foreground">{value || '—'}</dd>
-    </div>
-  )
-}
