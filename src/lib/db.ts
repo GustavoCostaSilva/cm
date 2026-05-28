@@ -309,6 +309,13 @@ export const db = {
     async setVisible(id: string, visible: boolean): Promise<void> {
       await sb().from('portal_documents').update({ visible_to_client: visible }).eq('id', id)
     },
+    async update(id: string, patch: { visibleToClient?: boolean; category?: string | null }): Promise<void> {
+      const row: Record<string, unknown> = {}
+      if (typeof patch.visibleToClient === 'boolean') row.visible_to_client = patch.visibleToClient
+      if ('category' in patch) row.category = patch.category
+      if (Object.keys(row).length === 0) return
+      await sb().from('portal_documents').update(row).eq('id', id)
+    },
     async remove(id: string): Promise<void> {
       await sb().from('portal_documents').delete().eq('id', id)
     },

@@ -24,32 +24,43 @@ export async function POST(
   }
 
   const form = await req.formData().catch(() => null)
-  const file = form?.get('file')
-  if (!(file instanceof File)) {
+  const files = (form?.getAll('file') ?? []).filter((f): f is File => f instanceof File)
+  if (files.length === 0) {
     return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 })
   }
-  if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: 'Arquivo excede 20 MB.' }, { status: 400 })
+  const tooBig = files.find((f) => f.size > MAX_BYTES)
+  if (tooBig) {
+    return NextResponse.json(
+      { error: `Arquivo "${tooBig.name}" excede 20 MB.` },
+      { status: 400 },
+    )
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const docId = randomUUID()
-  const safeName = file.name.replace(/[^\w.\- ]/g, '_').slice(0, 120) || 'arquivo'
-  const storedName = `${docId}__${safeName}`
-  saveFile(id, storedName, buffer)
+  const category = (form?.get('category') as string) || null
+  const visibleToClient = form?.get('visibleToClient') === 'true'
+  const uploadedBy = session.name || 'Equipe'
+  const ids: string[] = []
 
-  const doc: CaseDocument = {
-    id: docId,
-    clientId: id,
-    category: (form?.get('category') as string) || null,
-    originalName: file.name,
-    storedName,
-    mime: file.type || null,
-    sizeBytes: file.size,
-    uploadedBy: session.name || 'Equipe',
-    uploadedAt: new Date().toISOString(),
-    visibleToClient: form?.get('visibleToClient') === 'true',
+  for (const file of files) {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const docId = randomUUID()
+    const safeName = file.name.replace(/[^\w.\- ]/g, '_').slice(0, 120) || 'arquivo'
+    const storedName = `${docId}__${safeName}`
+    saveFile(id, storedName, buffer)
+    const doc: CaseDocument = {
+      id: docId,
+      clientId: id,
+      category,
+      originalName: file.name,
+      storedName,
+      mime: file.type || null,
+      sizeBytes: file.size,
+      uploadedBy,
+      uploadedAt: new Date().toISOString(),
+      visibleToClient,
+    }
+    await db.documents.add(doc)
+    ids.push(docId)
   }
-  await db.documents.add(doc)
-  return NextResponse.json({ ok: true, id: docId }, { status: 201 })
+  return NextResponse.json({ ok: true, ids, count: ids.length }, { status: 201 })
 }

@@ -29,9 +29,12 @@ export async function PATCH(
   const a = await authDoc(docId)
   if ('error' in a) return a.error
   const body = await req.json().catch(() => ({}))
-  if (typeof body.visibleToClient === 'boolean') {
-    await db.documents.setVisible(docId, body.visibleToClient)
+  const patch: { visibleToClient?: boolean; category?: string | null } = {}
+  if (typeof body.visibleToClient === 'boolean') patch.visibleToClient = body.visibleToClient
+  if (typeof body.category === 'string' || body.category === null) {
+    patch.category = body.category === '' ? null : (body.category ?? null)
   }
+  if (Object.keys(patch).length > 0) await db.documents.update(docId, patch)
   return NextResponse.json({ ok: true })
 }
 

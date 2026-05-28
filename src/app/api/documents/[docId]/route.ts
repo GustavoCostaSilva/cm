@@ -8,8 +8,18 @@ export const runtime = 'nodejs'
 
 // Download a document. Staff with access to the client, OR the client owner
 // when the document is marked visible to the client.
+// Safe MIME types that we allow rendering inline in the browser.
+// Anything else (HTML, scripts, etc.) is always served as an attachment to
+// prevent XSS via uploaded files.
+function isSafeForInline(mime: string | null): boolean {
+  if (!mime) return false
+  if (mime === 'application/pdf') return true
+  if (mime.startsWith('image/')) return true
+  return false
+}
+
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ docId: string }> },
 ) {
   const { docId } = await params
@@ -37,10 +47,12 @@ export async function GET(
   const blob = new Blob([new Uint8Array(buffer)], {
     type: doc.mime || 'application/octet-stream',
   })
+  const wantsInline = new URL(req.url).searchParams.get('inline') === '1' && isSafeForInline(doc.mime)
+  const disposition = wantsInline ? 'inline' : 'attachment'
   return new NextResponse(blob, {
     headers: {
       'Content-Type': doc.mime || 'application/octet-stream',
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(doc.originalName)}"`,
+      'Content-Disposition': `${disposition}; filename="${encodeURIComponent(doc.originalName)}"`,
     },
   })
 }
