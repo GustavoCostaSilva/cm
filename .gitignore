@@ -11,5 +11,6 @@ yarn-error.log*
 !.env.example
 next-env.d.ts
 /data/*.json
+/data/uploads/
 .vercel
 *.tsbuildinfo

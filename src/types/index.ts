@@ -324,6 +324,35 @@ export interface OfficeConfig {
   disclaimerText: string
 }
 
+// ─────────────────────────────────────────────────────────────
+// Documents (manual §6/§7 — Zoho Drive folder structure)
+// ─────────────────────────────────────────────────────────────
+export const DOC_CATEGORIES = [
+  'Documentos Pessoais',
+  'Formulários',
+  'Evidências',
+  'Relato',
+  'Laudos',
+  'Testemunhas',
+  'Comunicações',
+  'Versão Final',
+  'Correspondências USCIS',
+] as const
+export type DocCategory = (typeof DOC_CATEGORIES)[number]
+
+export interface CaseDocument {
+  id: string
+  clientId: string
+  category: string | null
+  originalName: string
+  storedName: string
+  mime: string | null
+  sizeBytes: number
+  uploadedBy: string
+  uploadedAt: string
+  visibleToClient: boolean
+}
+
 // Fresh ordered stage list for a brand-new client.
 export function freshStages(): StageProgress[] {
   return STAGE_KEYS.map((key) => ({

@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation'
-import { CalendarClock, Route, History } from 'lucide-react'
+import { CalendarClock, Route, History, FolderOpen } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getClientSession } from '@/lib/server-session'
 import { ContactFooter } from '@/components/client/ContactFooter'
 import { ClientMilestones } from '@/components/client/ClientMilestones'
 import { CaseTimeline } from '@/components/client/CaseTimeline'
+import { ClientDocuments } from '@/components/client/ClientDocuments'
 import { LogoutButton } from '@/components/LogoutButton'
 import { clientMilestones, formatDate, daysUntil } from '@/lib/case-utils'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,7 @@ export default async function MeuCasoPage() {
 
   const office = await db.office.get()
   const events = (await db.events.byClient(client.id)).filter((e) => e.visibleToClient)
+  const documents = (await db.documents.byClient(client.id)).filter((d) => d.visibleToClient)
   const nextDeadline =
     (await db.deadlines.byClient(client.id)).filter((d) => d.status === 'pending')[0] ?? null
   const manager = client.assignedTo ? await db.staff.get(client.assignedTo) : null
@@ -133,6 +135,14 @@ export default async function MeuCasoPage() {
             <h2 className="text-sm font-semibold text-foreground">Atualizações</h2>
           </div>
           <CaseTimeline events={events} />
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-5 flex items-center gap-2">
+            <FolderOpen className="size-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">Seus documentos</h2>
+          </div>
+          <ClientDocuments documents={documents} />
         </section>
       </main>
 

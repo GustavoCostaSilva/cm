@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks } from 'lucide-react'
+import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks, FolderOpen } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { StageManager } from '@/components/staff/StageManager'
 import { ChecklistManager } from '@/components/staff/ChecklistManager'
+import { DocumentsManager } from '@/components/staff/DocumentsManager'
 import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
 import { CaseControls } from '@/components/staff/CaseControls'
@@ -32,10 +33,11 @@ export default async function ClientDetailPage({
   if (!client) notFound()
   if (session && !canAccessClient(session, client)) notFound()
 
-  const [events, deadlines, manager] = await Promise.all([
+  const [events, deadlines, manager, documents] = await Promise.all([
     db.events.byClient(id),
     db.deadlines.byClient(id),
     client.assignedTo ? db.staff.get(client.assignedTo) : Promise.resolve(undefined),
+    db.documents.byClient(id),
   ])
   const pct = progressPercent(client)
   const complete = isCaseComplete(client)
@@ -106,6 +108,14 @@ export default async function ClientDetailPage({
               <h2 className="text-sm font-semibold text-foreground">Checklist do visto</h2>
             </div>
             <ChecklistManager clientId={client.id} visa={client.caseType} done={client.checklistDone} />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <FolderOpen className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Documentos</h2>
+            </div>
+            <DocumentsManager clientId={client.id} documents={documents} />
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">

@@ -1,4 +1,4 @@
-import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig } from '@/types'
+import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig, CaseDocument } from '@/types'
 import { sb } from './supabase'
 import { buildSeed } from './seed'
 
@@ -93,6 +93,34 @@ function fromDeadline(d: Partial<Deadline>): Row {
   if (d.status !== undefined) r.status = d.status
   if (d.stageKey !== undefined) r.stage_key = d.stageKey
   return r
+}
+function toDocument(r: Row): CaseDocument {
+  return {
+    id: String(r.id),
+    clientId: String(r.client_id),
+    category: s(r.category),
+    originalName: String(r.original_name),
+    storedName: String(r.stored_name),
+    mime: s(r.mime),
+    sizeBytes: Number(r.size_bytes ?? 0),
+    uploadedBy: String(r.uploaded_by ?? ''),
+    uploadedAt: String(r.uploaded_at),
+    visibleToClient: Boolean(r.visible_to_client),
+  }
+}
+function fromDocument(d: CaseDocument): Row {
+  return {
+    id: d.id,
+    client_id: d.clientId,
+    category: d.category,
+    original_name: d.originalName,
+    stored_name: d.storedName,
+    mime: d.mime,
+    size_bytes: d.sizeBytes,
+    uploaded_by: d.uploadedBy,
+    uploaded_at: d.uploadedAt,
+    visible_to_client: d.visibleToClient,
+  }
 }
 function toStaff(r: Row): StaffUser {
   return {
@@ -238,6 +266,31 @@ export const db = {
     },
     async remove(id: string): Promise<void> {
       await sb().from('portal_deadlines').delete().eq('id', id)
+    },
+  },
+
+  documents: {
+    async byClient(id: string): Promise<CaseDocument[]> {
+      await ensureSeeded()
+      const { data } = await sb()
+        .from('portal_documents')
+        .select('*')
+        .eq('client_id', id)
+        .order('uploaded_at', { ascending: false })
+      return rows<Row>(data).map(toDocument)
+    },
+    async get(id: string): Promise<CaseDocument | undefined> {
+      const { data } = await sb().from('portal_documents').select('*').eq('id', id).maybeSingle()
+      return data ? toDocument(data) : undefined
+    },
+    async add(d: CaseDocument): Promise<void> {
+      await sb().from('portal_documents').insert(fromDocument(d))
+    },
+    async setVisible(id: string, visible: boolean): Promise<void> {
+      await sb().from('portal_documents').update({ visible_to_client: visible }).eq('id', id)
+    },
+    async remove(id: string): Promise<void> {
+      await sb().from('portal_documents').delete().eq('id', id)
     },
   },
 
