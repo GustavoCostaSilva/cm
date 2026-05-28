@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { slaState } from '@/lib/case-utils'
-import { STAGE_KEYS, STAGE_LABELS, STAGE_SLA_HOURS, VISA_TYPES, type Client, type CaseReview } from '@/types'
+import { STAGE_KEYS, STAGE_LABELS, STAGE_SLA_HOURS, VISA_TYPES, type Client } from '@/types'
 import { cn } from '@/lib/utils'
 
 function activeStage(c: Client) {
@@ -20,11 +20,7 @@ export default async function PainelPage() {
   if (!session) redirect('/gestao')
   if (session.role !== 'coordenador') redirect('/gestao/clientes')
 
-  const [clients, staff, reviews] = await Promise.all([
-    db.clients.all(),
-    db.staff.all(),
-    db.reviews.all(),
-  ])
+  const [clients, staff] = await Promise.all([db.clients.all(), db.staff.all()])
   const nameById = new Map(staff.map((m) => [m.id, m.name]))
   const now = new Date()
 
@@ -69,23 +65,6 @@ export default async function PainelPage() {
     ? Math.round(deliveryDays.reduce((a, b) => a + b, 0) / deliveryDays.length)
     : null
 
-  const reviewsByClient = new Map<string, CaseReview[]>()
-  for (const r of reviews) {
-    const arr = reviewsByClient.get(r.clientId) ?? []
-    arr.push(r)
-    reviewsByClient.set(r.clientId, arr)
-  }
-  const reviewedGroups = [...reviewsByClient.values()]
-  const firstPassClean = reviewedGroups.filter(
-    (rs) => [...rs].sort((a, b) => a.round - b.round)[0]?.outcome === 'approved',
-  ).length
-  const pctFirstPass = reviewedGroups.length
-    ? Math.round((firstPassClean / reviewedGroups.length) * 100)
-    : null
-  const pctThird = reviewedGroups.length
-    ? Math.round((reviewedGroups.filter((rs) => rs.length >= 3).length / reviewedGroups.length) * 100)
-    : null
-
   let slaTotal = 0
   let slaMet = 0
   for (const c of clients) {
@@ -116,18 +95,8 @@ export default async function PainelPage() {
       target: '≤ 18 dias',
       state: avgDelivery == null ? 'na' : avgDelivery <= 18 ? 'ok' : 'bad',
     },
-    {
-      label: 'Sem erro na 1ª revisão',
-      value: pctFirstPass == null ? '—' : `${pctFirstPass}%`,
-      target: '≥ 85%',
-      state: pctFirstPass == null ? 'na' : pctFirstPass >= 85 ? 'ok' : 'bad',
-    },
-    {
-      label: 'Com 3ª rodada de revisão',
-      value: pctThird == null ? '—' : `${pctThird}%`,
-      target: '≤ 5%',
-      state: pctThird == null ? 'na' : pctThird <= 5 ? 'ok' : 'bad',
-    },
+    { label: 'Sem erro na 1ª revisão', value: '—', target: '≥ 85%', state: 'na' },
+    { label: 'Com 3ª rodada de revisão', value: '—', target: '≤ 5%', state: 'na' },
     {
       label: 'SLAs cumpridos',
       value: pctSlaMet == null ? '—' : `${pctSlaMet}%`,
