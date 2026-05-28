@@ -5,14 +5,16 @@ import { cn } from '@/lib/utils'
 export function MessageThread({
   messages,
   viewer,
+  emptyText,
 }: {
   messages: Message[]
   viewer: 'client' | 'staff'
+  emptyText?: string
 }) {
   if (messages.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-        Nenhuma mensagem ainda. Escreva a primeira abaixo.
+        {emptyText ?? 'Nenhuma mensagem ainda. Escreva a primeira abaixo.'}
       </p>
     )
   }

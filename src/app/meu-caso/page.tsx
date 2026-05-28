@@ -154,7 +154,7 @@ export default async function MeuCasoPage() {
             <History className="size-4 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">{t.updatesTitle}</h2>
           </div>
-          <CaseTimeline events={events} />
+          <CaseTimeline events={events} emptyText={t.noUpdates} />
         </section>
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -162,7 +162,7 @@ export default async function MeuCasoPage() {
             <FolderOpen className="size-4 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">{t.documentsTitle}</h2>
           </div>
-          <ClientDocuments documents={documents} />
+          <ClientDocuments documents={documents} emptyText={t.noDocuments} />
         </section>
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -170,7 +170,7 @@ export default async function MeuCasoPage() {
             <MessagesSquare className="size-4 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">{t.messagesTitle}</h2>
           </div>
-          <MessageThread messages={messages} viewer="client" />
+          <MessageThread messages={messages} viewer="client" emptyText={t.noMessages} />
           <MessageComposer
             endpoint="/api/client/messages"
             placeholder={t.messagePlaceholder}

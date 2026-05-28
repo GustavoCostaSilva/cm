@@ -45,6 +45,24 @@ export async function POST(
 
   const findStage = (k: StageKey) => stages.find((st) => st.key === k)
 
+  // Eligibility gate (manual §5.2): the case cannot progress beyond the
+  // eligibility analysis until the client is confirmed eligible. Block
+  // starting/completing any stage from "analise" onward while eligibility
+  // is still pending or marked ineligible.
+  const ELIGIBILITY_GATE_FROM = STAGE_KEYS.indexOf('analise')
+  if ((action === 'start' || action === 'complete') && stageKey) {
+    const idx = STAGE_KEYS.indexOf(stageKey)
+    if (idx >= ELIGIBILITY_GATE_FROM && client.eligibility !== 'eligible') {
+      return NextResponse.json(
+        {
+          error:
+            'Elegibilidade ainda não confirmada. Conclua a análise de elegibilidade e marque o cliente como "Elegível" antes de avançar para esta etapa (manual §5.2).',
+        },
+        { status: 422 },
+      )
+    }
+  }
+
   if (action === 'start') {
     if (!stageKey || !findStage(stageKey)) {
       return NextResponse.json({ error: 'Etapa inválida.' }, { status: 400 })
@@ -87,7 +105,11 @@ export async function POST(
     const nk = nextStageKey(stageKey)
     if (nk) {
       const ns = findStage(nk)!
-      if (ns.status === 'pending') {
+      // Don't auto-advance into an eligibility-gated stage until the client
+      // is confirmed eligible (manual §5.2).
+      const nkGated =
+        STAGE_KEYS.indexOf(nk) >= ELIGIBILITY_GATE_FROM && client.eligibility !== 'eligible'
+      if (ns.status === 'pending' && !nkGated) {
         ns.status = 'active'
         ns.startedAt = now
       }

@@ -2,11 +2,18 @@ import { Download, FileText } from 'lucide-react'
 import type { CaseDocument } from '@/types'
 import { formatDate } from '@/lib/case-utils'
 
-export function ClientDocuments({ documents }: { documents: CaseDocument[] }) {
+export function ClientDocuments({
+  documents,
+  emptyText,
+}: {
+  documents: CaseDocument[]
+  emptyText?: string
+}) {
   if (documents.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-        Nenhum documento disponível ainda. Quando o escritório compartilhar algo, aparecerá aqui.
+        {emptyText ??
+          'Nenhum documento disponível ainda. Quando o escritório compartilhar algo, aparecerá aqui.'}
       </p>
     )
   }

@@ -27,12 +27,12 @@ function tone(type: CaseEventType): string {
   return 'bg-secondary text-muted-foreground'
 }
 
-export function CaseTimeline({ events }: { events: CaseEvent[] }) {
+export function CaseTimeline({ events, emptyText }: { events: CaseEvent[]; emptyText?: string }) {
   if (events.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-        Ainda não há atualizações registradas. Assim que houver novidades, elas
-        aparecerão aqui.
+        {emptyText ??
+          'Ainda não há atualizações registradas. Assim que houver novidades, elas aparecerão aqui.'}
       </p>
     )
   }
