@@ -67,13 +67,13 @@ export default async function MeuCasoPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <LiveRefresh intervalMs={15000} />
       <header className="sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 py-3.5">
-          <div className="flex items-center gap-2.5">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2.5">
             <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#b22234] to-[#1b3a6b] text-xs font-bold text-white">
               GV
             </span>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold text-foreground">{office.officeName}</p>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-sm font-semibold text-foreground">{office.officeName}</p>
               <p className="text-xs text-muted-foreground">{t.portalSubtitle}</p>
             </div>
           </div>

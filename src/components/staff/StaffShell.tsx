@@ -15,8 +15,8 @@ export function StaffShell({
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 border-b border-border bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-2.5">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2.5 sm:gap-4 sm:px-5">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/gestao/clientes" className="flex items-center gap-2.5">
               <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#b22234] to-[#1b3a6b] text-xs font-bold text-white">
                 GV

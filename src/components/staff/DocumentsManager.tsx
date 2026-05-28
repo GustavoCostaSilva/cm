@@ -161,12 +161,12 @@ export function DocumentsManager({
 
   return (
     <div className="grid gap-4 md:grid-cols-[210px_1fr]">
-      {/* sidebar — pastas */}
-      <aside className="space-y-0.5">
+      {/* sidebar — pastas (chips com rolagem horizontal no mobile) */}
+      <aside className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:mx-0 md:block md:space-y-0.5 md:overflow-visible md:px-0 md:pb-0">
         <button
           onClick={() => setFolder(null)}
           className={cn(
-            'flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+            'flex shrink-0 items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors md:w-full',
             folder === null
               ? 'bg-primary/10 font-medium text-primary'
               : 'text-foreground hover:bg-secondary',
@@ -182,7 +182,7 @@ export function DocumentsManager({
             key={f.key}
             onClick={() => setFolder(f.key)}
             className={cn(
-              'flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors',
+              'flex shrink-0 items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors md:w-full',
               folder === f.key
                 ? 'bg-primary/10 font-medium text-primary'
                 : 'text-foreground hover:bg-secondary',
@@ -195,7 +195,7 @@ export function DocumentsManager({
             <span className="text-xs text-muted-foreground">{f.count}</span>
           </button>
         ))}
-        <div className="mt-3 border-t border-border pt-2 text-[11px] leading-relaxed text-muted-foreground">
+        <div className="mt-3 hidden border-t border-border pt-2 text-[11px] leading-relaxed text-muted-foreground md:block">
           {stats.count} arquivo{stats.count === 1 ? '' : 's'} · {fmtSize(stats.total)}
           <br />
           Limite por arquivo: 20 MB

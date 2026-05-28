@@ -164,7 +164,7 @@ export default async function PainelPage() {
         <span className="text-sm text-muted-foreground">{label}</span>
         <Icon className={cn('size-4', tone)} />
       </div>
-      <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{value}</p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{value}</p>
     </div>
   )
 
@@ -173,7 +173,7 @@ export default async function PainelPage() {
       <h1 className="text-xl font-bold tracking-tight text-foreground">Painel do Coordenador</h1>
       <p className="mb-5 text-sm text-muted-foreground">Visão geral dos casos do escritório.</p>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {stat('Casos ativos', active.length, Users, 'text-primary')}
         {stat('Urgentes', urgent.length, AlertTriangle, 'text-destructive')}
         {stat('SLA estourado', overdue.length, Clock, 'text-[#8a6d0f]')}
@@ -218,7 +218,7 @@ export default async function PainelPage() {
             <div className="space-y-2">
               {byStage.map((s) => (
                 <div key={s.key} className="flex items-center gap-3">
-                  <span className="w-44 shrink-0 text-sm text-muted-foreground">{s.label}</span>
+                  <span className="w-24 shrink-0 text-sm text-muted-foreground sm:w-44">{s.label}</span>
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
                     <div className="h-full bg-primary" style={{ width: `${Math.round((s.count / active.length) * 100)}%` }} />
                   </div>

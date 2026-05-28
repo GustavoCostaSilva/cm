@@ -140,7 +140,55 @@ export function ClientsTable({
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+      {/* Mobile: cards */}
+      <div className="mt-4 space-y-2 md:hidden">
+        {filtered.map((r) => (
+          <button
+            key={r.id}
+            onClick={() => router.push(`/gestao/clientes/${r.id}`)}
+            className="block w-full rounded-xl border border-border bg-card p-3.5 text-left active:bg-secondary/50"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-1.5 font-medium text-foreground">
+                {r.urgent && <AlertTriangle className="size-3.5 shrink-0 text-destructive" />}
+                <span className="truncate">{r.fullName}</span>
+              </div>
+              <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', STATUS[r.status].cls)}>
+                {STATUS[r.status].label}
+              </span>
+            </div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {r.passport} · {r.visa ?? '—'}
+            </div>
+            <div className="mt-2 flex items-center gap-2 text-xs">
+              <span className="shrink-0 text-muted-foreground">{r.stageLabel}</span>
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full bg-primary" style={{ width: `${r.progress}%` }} />
+              </div>
+              <span className="shrink-0 text-muted-foreground">{r.progress}%</span>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', ELIG[r.eligibility].cls)}>
+                {ELIG[r.eligibility].label}
+              </span>
+              <span className="text-muted-foreground">{r.assignedToName ?? 'Sem responsável'}</span>
+              {r.nextDeadline && (
+                <span className={cn('font-medium', daysUntil(r.nextDeadline) < 0 ? 'text-destructive' : 'text-muted-foreground')}>
+                  Prazo: {formatDate(r.nextDeadline)}
+                </span>
+              )}
+            </div>
+          </button>
+        ))}
+        {filtered.length === 0 && (
+          <p className="rounded-xl border border-border bg-card py-8 text-center text-sm text-muted-foreground">
+            Nenhum cliente encontrado.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="mt-4 hidden overflow-hidden rounded-xl border border-border bg-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

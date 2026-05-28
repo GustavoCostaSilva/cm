@@ -105,7 +105,7 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
               key={ymd}
               onClick={() => setSelected(ymd)}
               className={cn(
-                'min-h-[92px] cursor-pointer bg-card p-1.5 text-left align-top transition-colors hover:bg-secondary/40',
+                'min-h-[58px] cursor-pointer bg-card p-1.5 text-left align-top transition-colors hover:bg-secondary/40 sm:min-h-[92px]',
                 !inMonth && 'bg-secondary/30',
               )}
             >
@@ -118,7 +118,19 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
               >
                 {format(day, 'd')}
               </div>
-              <div className="space-y-1">
+              {dayItems.length > 0 && (
+                <span
+                  className={cn(
+                    'inline-flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-semibold sm:hidden',
+                    dayItems.some((it) => it.status !== 'done' && it.dueDate.slice(0, 10) < todayYmd)
+                      ? 'bg-destructive/15 text-destructive'
+                      : 'bg-primary/10 text-primary',
+                  )}
+                >
+                  {dayItems.length}
+                </span>
+              )}
+              <div className="hidden space-y-1 sm:block">
                 {dayItems.slice(0, 3).map((it) => (
                   <button
                     key={it.id}
