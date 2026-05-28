@@ -92,6 +92,7 @@ export async function sendStageNotification(input: StageMailInput): Promise<Mail
 
   await t.sendMail({
     from: process.env.SMTP_FROM || `${office.officeName} <${office.email}>`,
+    replyTo: office.email || undefined,
     to,
     subject,
     text,
