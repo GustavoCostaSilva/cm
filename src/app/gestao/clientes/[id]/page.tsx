@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks, FolderOpen, MessagesSquare } from 'lucide-react'
+import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks, FolderOpen, MessagesSquare, ClipboardCheck, ShieldCheck } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { StageManager } from '@/components/staff/StageManager'
 import { ChecklistManager } from '@/components/staff/ChecklistManager'
+import { ConferenceChecklists } from '@/components/staff/ConferenceChecklists'
+import { ReviewPanel } from '@/components/staff/ReviewPanel'
 import { DocumentsManager } from '@/components/staff/DocumentsManager'
 import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
@@ -35,16 +37,18 @@ export default async function ClientDetailPage({
   if (!client) notFound()
   if (session && !canAccessClient(session, client)) notFound()
 
-  const [events, deadlines, manager, documents, messages] = await Promise.all([
+  const [events, deadlines, manager, documents, messages, reviews] = await Promise.all([
     db.events.byClient(id),
     db.deadlines.byClient(id),
     client.assignedTo ? db.staff.get(client.assignedTo) : Promise.resolve(undefined),
     db.documents.byClient(id),
     db.messages.byClient(id),
+    db.reviews.byClient(id),
   ])
   const pct = progressPercent(client)
   const complete = isCaseComplete(client)
   const nowIso = new Date().toISOString()
+  const canReview = session?.role === 'revisor_tecnico' || session?.role === 'coordenador'
 
   return (
     <StaffShell staffName={session?.name ?? 'Equipe'} role={session?.role}>
@@ -111,6 +115,22 @@ export default async function ClientDetailPage({
               <h2 className="text-sm font-semibold text-foreground">Checklist do visto</h2>
             </div>
             <ChecklistManager clientId={client.id} visa={client.caseType} done={client.checklistDone} />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <ClipboardCheck className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Conferências (assinaturas e validação final)</h2>
+            </div>
+            <ConferenceChecklists clientId={client.id} done={client.checklistDone} />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldCheck className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Revisão técnica</h2>
+            </div>
+            <ReviewPanel clientId={client.id} reviews={reviews} canReview={canReview} />
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">

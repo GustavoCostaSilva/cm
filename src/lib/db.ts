@@ -1,4 +1,4 @@
-import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig, CaseDocument, Message } from '@/types'
+import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig, CaseDocument, Message, CaseReview } from '@/types'
 import { sb } from './supabase'
 import { buildSeed } from './seed'
 
@@ -140,6 +140,28 @@ function fromMessage(m: Message): Row {
     author_name: m.authorName,
     text: m.text,
     created_at: m.createdAt,
+  }
+}
+function toReview(r: Row): CaseReview {
+  return {
+    id: String(r.id),
+    clientId: String(r.client_id),
+    round: Number(r.round ?? 1),
+    reviewer: String(r.reviewer ?? ''),
+    outcome: r.outcome as CaseReview['outcome'],
+    errors: (r.errors as CaseReview['errors']) ?? [],
+    createdAt: String(r.created_at),
+  }
+}
+function fromReview(rv: CaseReview): Row {
+  return {
+    id: rv.id,
+    client_id: rv.clientId,
+    round: rv.round,
+    reviewer: rv.reviewer,
+    outcome: rv.outcome,
+    errors: rv.errors,
+    created_at: rv.createdAt,
   }
 }
 function toStaff(r: Row): StaffUser {
@@ -333,6 +355,29 @@ export const db = {
     },
     async add(m: Message): Promise<void> {
       await sb().from('portal_messages').insert(fromMessage(m))
+    },
+  },
+
+  reviews: {
+    async all(): Promise<CaseReview[]> {
+      await ensureSeeded()
+      const { data } = await sb()
+        .from('portal_reviews')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return rows<Row>(data).map(toReview)
+    },
+    async byClient(id: string): Promise<CaseReview[]> {
+      await ensureSeeded()
+      const { data } = await sb()
+        .from('portal_reviews')
+        .select('*')
+        .eq('client_id', id)
+        .order('created_at', { ascending: true })
+      return rows<Row>(data).map(toReview)
+    },
+    async add(rv: CaseReview): Promise<void> {
+      await sb().from('portal_reviews').insert(fromReview(rv))
     },
   },
 
