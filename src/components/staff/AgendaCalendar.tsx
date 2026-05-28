@@ -14,7 +14,7 @@ import {
   format,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface AgendaItem {
@@ -38,6 +38,7 @@ function chipTone(item: AgendaItem, todayYmd: string): string {
 export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
   const router = useRouter()
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()))
+  const [selected, setSelected] = useState<string | null>(null)
   const today = new Date()
   const todayYmd = format(today, 'yyyy-MM-dd')
 
@@ -102,8 +103,9 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
           return (
             <div
               key={ymd}
+              onClick={() => setSelected(ymd)}
               className={cn(
-                'min-h-[92px] bg-card p-1.5 text-left align-top',
+                'min-h-[92px] cursor-pointer bg-card p-1.5 text-left align-top transition-colors hover:bg-secondary/40',
                 !inMonth && 'bg-secondary/30',
               )}
             >
@@ -120,7 +122,10 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
                 {dayItems.slice(0, 3).map((it) => (
                   <button
                     key={it.id}
-                    onClick={() => router.push(`/gestao/clientes/${it.clientId}`)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/gestao/clientes/${it.clientId}`)
+                    }}
                     title={`${it.clientName} — ${it.title}`}
                     className={cn(
                       'block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium transition-opacity hover:opacity-80',
@@ -131,7 +136,7 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
                   </button>
                 ))}
                 {dayItems.length > 3 && (
-                  <span className="block px-1.5 text-[11px] text-muted-foreground">
+                  <span className="block px-1.5 text-[11px] font-medium text-muted-foreground">
                     +{dayItems.length - 3} mais
                   </span>
                 )}
@@ -152,6 +157,74 @@ export function AgendaCalendar({ items }: { items: AgendaItem[] }) {
           <span className="size-2.5 rounded-full bg-emerald-300" /> Concluído
         </span>
       </div>
+
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+              <h3 className="text-sm font-semibold capitalize text-foreground">
+                {format(new Date(selected + 'T00:00:00'), "EEEE, d 'de' MMMM", { locale: ptBR })}
+              </h3>
+              <button
+                onClick={() => setSelected(null)}
+                className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                aria-label="Fechar"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="p-4">
+              {(byDay.get(selected) ?? []).length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Nenhum prazo neste dia.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {(byDay.get(selected) ?? []).map((it) => {
+                    const overdue = it.status !== 'done' && it.dueDate.slice(0, 10) < todayYmd
+                    return (
+                      <li key={it.id}>
+                        <button
+                          onClick={() => {
+                            setSelected(null)
+                            router.push(`/gestao/clientes/${it.clientId}`)
+                          }}
+                          className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-secondary"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium text-foreground">
+                              {it.clientName}
+                            </div>
+                            <div className="truncate text-xs text-muted-foreground">{it.title}</div>
+                          </div>
+                          <span
+                            className={cn(
+                              'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                              it.status === 'done'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : overdue
+                                  ? 'bg-destructive/10 text-destructive'
+                                  : 'bg-primary/10 text-primary',
+                            )}
+                          >
+                            {it.status === 'done' ? 'Concluído' : overdue ? 'Vencido' : 'Pendente'}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

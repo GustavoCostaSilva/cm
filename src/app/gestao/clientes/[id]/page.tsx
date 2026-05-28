@@ -14,6 +14,7 @@ import { CaseControls } from '@/components/staff/CaseControls'
 import { StaffHistory } from '@/components/staff/StaffHistory'
 import { MessageThread } from '@/components/MessageThread'
 import { MessageComposer } from '@/components/MessageComposer'
+import { LiveRefresh } from '@/components/LiveRefresh'
 import { progressPercent, isCaseComplete, currentStage, formatDate } from '@/lib/case-utils'
 import { STAGE_LABELS, ELIGIBILITY_LABELS } from '@/types'
 import { cn } from '@/lib/utils'
@@ -48,6 +49,7 @@ export default async function ClientDetailPage({
 
   return (
     <StaffShell staffName={session?.name ?? 'Equipe'} role={session?.role}>
+      <LiveRefresh intervalMs={12000} />
       <Link
         href="/gestao/clientes"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"

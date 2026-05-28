@@ -322,6 +322,11 @@ export const db = {
   },
 
   messages: {
+    async all(): Promise<Message[]> {
+      await ensureSeeded()
+      const { data } = await sb().from('portal_messages').select('*').order('created_at')
+      return rows<Row>(data).map(toMessage)
+    },
     async byClient(id: string): Promise<Message[]> {
       await ensureSeeded()
       const { data } = await sb()

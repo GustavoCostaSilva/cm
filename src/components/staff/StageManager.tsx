@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Check, Loader2, Play, ChevronDown } from 'lucide-react'
 import type { StageProgress, StageKey } from '@/types'
 import { STAGE_LABELS, STAGE_DESCRIPTIONS, STAGE_RESPONSIBLE, ROLE_LABELS } from '@/types'
-import { stageDurationLabel, formatDate, slaState } from '@/lib/case-utils'
+import { stageDurationLabel, formatDate, formatDateTime, slaState, slaDueDate, slaCountdown, slaMaxLabel } from '@/lib/case-utils'
 import { cn } from '@/lib/utils'
 
 const SLA_BADGE: Record<'ok' | 'due_soon' | 'overdue', { label: string; cls: string }> = {
@@ -70,6 +70,9 @@ export function StageManager({
         const dur = stageDurationLabel(s, now)
         const isOpen = openKey === s.key
         const sla = active ? slaState(s, urgent, now) : null
+        const dueDate = active ? slaDueDate(s, urgent) : null
+        const countdown = active ? slaCountdown(s, urgent, now) : null
+        const maxLabel = slaMaxLabel(s.key, urgent)
         return (
           <li
             key={s.key}
@@ -93,9 +96,12 @@ export function StageManager({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-foreground">{STAGE_LABELS[s.key]}</h3>
                   <div className="flex items-center gap-2">
-                    {sla && (
-                      <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-medium', SLA_BADGE[sla].cls)}>
-                        {SLA_BADGE[sla].label}
+                    {sla && countdown && (
+                      <span
+                        className={cn('rounded-full px-2 py-0.5 text-[11px] font-medium', SLA_BADGE[sla].cls)}
+                        title={`Prazo da etapa: ${maxLabel ?? '—'}`}
+                      >
+                        {countdown}
                       </span>
                     )}
                     {!done && !active && (
@@ -127,6 +133,12 @@ export function StageManager({
                 <p className="mt-0.5 text-xs text-muted-foreground">{STAGE_DESCRIPTIONS[s.key]}</p>
                 <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
                   <span>Responsável: {ROLE_LABELS[STAGE_RESPONSIBLE[s.key]]}</span>
+                  {maxLabel && (
+                    <span>
+                      Prazo SLA: <span className="font-medium text-foreground">{maxLabel}</span>
+                      {active && dueDate && ` · vence ${formatDateTime(dueDate.toISOString())}`}
+                    </span>
+                  )}
                   {s.startedAt && <span>Início: {formatDate(s.startedAt)}</span>}
                   {done && s.completedAt && <span>Conclusão: {formatDate(s.completedAt)}</span>}
                   {dur && (

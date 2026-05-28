@@ -108,3 +108,26 @@ export function slaState(
   if (diffH < 12) return 'due_soon'
   return 'ok'
 }
+
+// Maximum SLA budget for a stage, as a friendly label ("48h" / "2 dias").
+export function slaMaxLabel(stageKey: StageKey, urgent: boolean): string | null {
+  const hours = STAGE_SLA_HOURS[stageKey]?.[urgent ? 'urgent' : 'normal'] ?? 0
+  if (!hours) return null
+  if (hours % 24 === 0) {
+    const d = hours / 24
+    return `${d} ${d === 1 ? 'dia' : 'dias'}`
+  }
+  return `${hours}h`
+}
+
+// Human countdown for the active stage's SLA: "vence em 2 dias" / "venceu há 3 horas".
+export function slaCountdown(
+  stage: StageProgress,
+  urgent: boolean,
+  now: Date = new Date(),
+): string | null {
+  const due = slaDueDate(stage, urgent)
+  if (!due) return null
+  const dist = formatDistanceStrict(due, now, { locale: ptBR })
+  return now.getTime() <= due.getTime() ? `vence em ${dist}` : `venceu há ${dist}`
+}

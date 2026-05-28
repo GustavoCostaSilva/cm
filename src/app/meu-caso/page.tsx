@@ -11,6 +11,7 @@ import { LanguageSwitcher } from '@/components/client/LanguageSwitcher'
 import { MessageThread } from '@/components/MessageThread'
 import { MessageComposer } from '@/components/MessageComposer'
 import { LogoutButton } from '@/components/LogoutButton'
+import { LiveRefresh } from '@/components/LiveRefresh'
 import { clientMilestones, formatDate, daysUntil } from '@/lib/case-utils'
 import type { Dict } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,7 @@ export default async function MeuCasoPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <LiveRefresh intervalMs={15000} />
       <header className="sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 py-3.5">
           <div className="flex items-center gap-2.5">

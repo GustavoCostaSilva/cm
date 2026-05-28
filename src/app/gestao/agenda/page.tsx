@@ -29,7 +29,7 @@ export default async function AgendaPage() {
     <StaffShell staffName={session?.name ?? 'Equipe'} role={session?.role}>
       <h1 className="text-xl font-bold tracking-tight text-foreground">Agenda de prazos</h1>
       <p className="mb-5 text-sm text-muted-foreground">
-        Todos os prazos dos clientes em um só lugar. Clique em um prazo para abrir o cliente.
+        Todos os prazos dos clientes em um só lugar. Clique em um dia para ver todos os prazos dele, ou em um prazo para abrir o caso.
       </p>
       <AgendaCalendar items={items} />
     </StaffShell>
