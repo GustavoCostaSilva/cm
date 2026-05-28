@@ -1,7 +1,7 @@
 import { formatDistanceStrict, format, differenceInCalendarDays, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import type { Client, StageProgress, StageKey } from '@/types'
-import { STAGE_KEYS } from '@/types'
+import { STAGE_SLA_HOURS, CLIENT_MILESTONES } from '@/types'
 
 // Index of the stage the client is currently on.
 export function currentStageIndex(client: Client): number {
@@ -68,6 +68,43 @@ export function daysUntil(dueDate: string, now: Date = new Date()): number {
   return differenceInCalendarDays(parseISO(dueDate), now)
 }
 
-export function stageLabelByKey(key: StageKey): string {
-  return STAGE_KEYS.includes(key) ? key : key
+// ── Client-facing milestones (group the 11 internal stages) ──
+export type MilestoneStatus = 'done' | 'active' | 'pending'
+export interface MilestoneView {
+  key: string
+  label: string
+  description: string
+  status: MilestoneStatus
+}
+
+export function clientMilestones(client: Client): MilestoneView[] {
+  const byKey = new Map(client.stages.map((s) => [s.key, s.status]))
+  return CLIENT_MILESTONES.map((m) => {
+    const statuses = m.stages.map((k) => byKey.get(k) ?? 'pending')
+    const allDone = statuses.every((st) => st === 'done')
+    const anyStarted = statuses.some((st) => st === 'active' || st === 'done')
+    const status: MilestoneStatus = allDone ? 'done' : anyStarted ? 'active' : 'pending'
+    return { key: m.key, label: m.label, description: m.description, status }
+  })
+}
+
+// ── SLA helpers (only meaningful for the active stage) ──
+export function slaDueDate(stage: StageProgress, urgent: boolean): Date | null {
+  if (!stage.startedAt || stage.status !== 'active') return null
+  const hours = STAGE_SLA_HOURS[stage.key]?.[urgent ? 'urgent' : 'normal'] ?? 0
+  if (!hours) return null
+  return new Date(new Date(stage.startedAt).getTime() + hours * 3600_000)
+}
+
+export function slaState(
+  stage: StageProgress,
+  urgent: boolean,
+  now: Date = new Date(),
+): 'ok' | 'due_soon' | 'overdue' | null {
+  const due = slaDueDate(stage, urgent)
+  if (!due) return null
+  const diffH = (due.getTime() - now.getTime()) / 3600_000
+  if (diffH < 0) return 'overdue'
+  if (diffH < 12) return 'due_soon'
+  return 'ok'
 }

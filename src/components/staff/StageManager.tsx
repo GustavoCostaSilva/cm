@@ -5,17 +5,25 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Check, Loader2, Play, ChevronDown } from 'lucide-react'
 import type { StageProgress, StageKey } from '@/types'
-import { STAGE_LABELS, STAGE_DESCRIPTIONS } from '@/types'
-import { stageDurationLabel, formatDate } from '@/lib/case-utils'
+import { STAGE_LABELS, STAGE_DESCRIPTIONS, STAGE_RESPONSIBLE, ROLE_LABELS } from '@/types'
+import { stageDurationLabel, formatDate, slaState } from '@/lib/case-utils'
 import { cn } from '@/lib/utils'
+
+const SLA_BADGE: Record<'ok' | 'due_soon' | 'overdue', { label: string; cls: string }> = {
+  ok: { label: 'SLA no prazo', cls: 'bg-emerald-100 text-emerald-700' },
+  due_soon: { label: 'SLA vence em breve', cls: 'bg-[#c9a227]/15 text-[#8a6d0f]' },
+  overdue: { label: 'SLA estourado', cls: 'bg-destructive/10 text-destructive' },
+}
 
 export function StageManager({
   clientId,
   stages,
+  urgent,
   nowIso,
 }: {
   clientId: string
   stages: StageProgress[]
+  urgent: boolean
   nowIso: string
 }) {
   const router = useRouter()
@@ -39,13 +47,11 @@ export function StageManager({
         return
       }
       const mailNote = d.mail?.dev
-        ? ' — e-mail simulado no console (SMTP não configurado)'
+        ? ' — e-mail simulado no log (SMTP não configurado)'
         : d.notified
           ? ' — cliente notificado por e-mail'
           : ''
-      toast.success(
-        (action === 'complete' ? 'Etapa concluída' : 'Etapa atualizada') + mailNote,
-      )
+      toast.success((action === 'complete' ? 'Etapa concluída' : 'Etapa atualizada') + mailNote)
       setOpenKey(null)
       setNote('')
       router.refresh()
@@ -63,6 +69,7 @@ export function StageManager({
         const active = s.status === 'active'
         const dur = stageDurationLabel(s, now)
         const isOpen = openKey === s.key
+        const sla = active ? slaState(s, urgent, now) : null
         return (
           <li
             key={s.key}
@@ -84,10 +91,13 @@ export function StageManager({
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">
-                    {STAGE_LABELS[s.key]}
-                  </h3>
+                  <h3 className="text-sm font-semibold text-foreground">{STAGE_LABELS[s.key]}</h3>
                   <div className="flex items-center gap-2">
+                    {sla && (
+                      <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-medium', SLA_BADGE[sla].cls)}>
+                        {SLA_BADGE[sla].label}
+                      </span>
+                    )}
                     {!done && !active && (
                       <button
                         onClick={() => post('start', s.key, { notify: false })}
@@ -114,20 +124,17 @@ export function StageManager({
                     )}
                   </div>
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {STAGE_DESCRIPTIONS[s.key]}
-                </p>
-                {(s.startedAt || dur) && (
-                  <div className="mt-1.5 flex flex-wrap gap-x-4 text-xs text-muted-foreground">
-                    {s.startedAt && <span>Início: {formatDate(s.startedAt)}</span>}
-                    {done && s.completedAt && <span>Conclusão: {formatDate(s.completedAt)}</span>}
-                    {dur && (
-                      <span className="font-medium text-foreground">
-                        {done ? 'Durou' : 'Há'} {dur}
-                      </span>
-                    )}
-                  </div>
-                )}
+                <p className="mt-0.5 text-xs text-muted-foreground">{STAGE_DESCRIPTIONS[s.key]}</p>
+                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+                  <span>Responsável: {ROLE_LABELS[STAGE_RESPONSIBLE[s.key]]}</span>
+                  {s.startedAt && <span>Início: {formatDate(s.startedAt)}</span>}
+                  {done && s.completedAt && <span>Conclusão: {formatDate(s.completedAt)}</span>}
+                  {dur && (
+                    <span className="font-medium text-foreground">
+                      {done ? 'Durou' : 'Há'} {dur}
+                    </span>
+                  )}
+                </div>
 
                 {isOpen && (
                   <div className="mt-3 rounded-lg border border-border bg-background p-3">
@@ -135,7 +142,7 @@ export function StageManager({
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       rows={2}
-                      placeholder="O que foi feito nesta etapa? (aparece para o cliente)"
+                      placeholder="O que foi feito nesta etapa? (opcional — enviado ao cliente se notificar)"
                       className="w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
                     />
                     <div className="mt-2 flex items-center justify-between gap-2">

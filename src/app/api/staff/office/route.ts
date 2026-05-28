@@ -6,7 +6,7 @@ import type { OfficeConfig } from '@/types'
 // Save office configuration (admin only).
 export async function PUT(req: NextRequest) {
   const session = await getStaffSession()
-  if (!session || session.role !== 'admin') {
+  if (!session || session.role !== 'coordenador') {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
 

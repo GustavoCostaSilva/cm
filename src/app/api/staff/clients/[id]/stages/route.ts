@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
+import { canAccessClient } from '@/lib/perms'
 import { sendStageNotification, type StageMailKind } from '@/lib/email'
 import { currentStage } from '@/lib/case-utils'
 import { STAGE_KEYS, STAGE_LABELS, type StageKey, type CaseEvent, type StageProgress } from '@/types'
@@ -21,7 +22,7 @@ export async function POST(
   const { id } = await params
   const client = await db.clients.get(id)
   if (!client) return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
-  if (session.role === 'case_manager' && client.assignedTo !== session.sub) {
+  if (!canAccessClient(session, client)) {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
 

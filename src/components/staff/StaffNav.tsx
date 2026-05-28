@@ -17,7 +17,7 @@ export function StaffNav({ role }: { role?: StaffRole }) {
   const path = usePathname()
   return (
     <nav className="flex items-center gap-1">
-      {ITEMS.filter((i) => !i.adminOnly || role === 'admin').map(
+      {ITEMS.filter((i) => !i.adminOnly || role === 'coordenador').map(
         ({ href, label, icon: Icon }) => {
           const active = path === href || path.startsWith(href + '/')
           return (

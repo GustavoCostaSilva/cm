@@ -6,7 +6,7 @@ import { OfficeSettingsForm } from '@/components/staff/OfficeSettingsForm'
 
 export default async function ConfigPage() {
   const session = await getStaffSession()
-  if (!session || session.role !== 'admin') redirect('/gestao/clientes')
+  if (!session || session.role !== 'coordenador') redirect('/gestao/clientes')
 
   const office = await db.office.get()
 

@@ -6,7 +6,7 @@ import { TeamManager } from '@/components/staff/TeamManager'
 
 export default async function EquipePage() {
   const session = await getStaffSession()
-  if (!session || session.role !== 'admin') redirect('/gestao/clientes')
+  if (!session || session.role !== 'coordenador') redirect('/gestao/clientes')
 
   const [staff, clients] = await Promise.all([db.staff.all(), db.clients.all()])
   const clientCounts: Record<string, number> = {}

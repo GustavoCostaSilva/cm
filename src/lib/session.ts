@@ -1,9 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose'
+import type { StaffRole } from '@/types'
 
 // Edge-safe session module (jose only — used by middleware + APIs).
 // Two independent audiences: staff (case management) and client (portal).
 
-export type StaffRole = 'admin' | 'case_manager'
+export type { StaffRole }
 
 export interface StaffSession {
   sub: string

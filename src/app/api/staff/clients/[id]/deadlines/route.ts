@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
+import { canAccessClient } from '@/lib/perms'
 import type { Deadline, StageKey } from '@/types'
 import type { StaffSession } from '@/lib/session'
 
@@ -12,7 +13,7 @@ async function authorizeClient(
 ): Promise<NextResponse | null> {
   const client = await db.clients.get(clientId)
   if (!client) return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
-  if (session.role === 'case_manager' && client.assignedTo !== session.sub) {
+  if (!canAccessClient(session, client)) {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
   return null

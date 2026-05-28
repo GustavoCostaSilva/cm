@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { hashPassword } from '@/lib/auth'
-import type { StaffUser, StaffRole } from '@/types'
+import { STAFF_ROLES, type StaffUser, type StaffRole } from '@/types'
 
-// Create a staff member (admin only).
+// Create a staff member (coordenador only).
 export async function POST(req: NextRequest) {
   const session = await getStaffSession()
-  if (!session || session.role !== 'admin') {
+  if (!session || session.role !== 'coordenador') {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const name = String(body.name ?? '').trim()
   const email = String(body.email ?? '').trim().toLowerCase()
   const password = String(body.password ?? '')
-  const role: StaffRole = body.role === 'admin' ? 'admin' : 'case_manager'
+  const role: StaffRole = STAFF_ROLES.includes(body.role) ? body.role : 'case_manager'
 
   if (!name || !email || password.length < 6) {
     return NextResponse.json(

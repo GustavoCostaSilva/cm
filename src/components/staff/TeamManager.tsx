@@ -4,13 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Plus, Loader2, X, KeyRound } from 'lucide-react'
-import type { StaffUser } from '@/types'
+import { STAFF_ROLES, ROLE_LABELS, type StaffUser } from '@/types'
 import { cn } from '@/lib/utils'
 
 const FIELD =
   'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15'
-
-const ROLE_LABEL = { admin: 'Admin / Gerência', case_manager: 'Case Manager' } as const
 
 export function TeamManager({
   staff,
@@ -120,12 +118,15 @@ export function TeamManager({
                       disabled={u.id === selfId}
                       className="rounded-md border border-input bg-background px-2 py-1 text-xs outline-none focus:border-primary disabled:opacity-60"
                     >
-                      <option value="case_manager">{ROLE_LABEL.case_manager}</option>
-                      <option value="admin">{ROLE_LABEL.admin}</option>
+                      {STAFF_ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {ROLE_LABELS[r]}
+                        </option>
+                      ))}
                     </select>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {u.role === 'admin' ? '—' : (clientCounts[u.id] ?? 0)}
+                    {u.role === 'case_manager' ? (clientCounts[u.id] ?? 0) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -133,9 +134,7 @@ export function TeamManager({
                       disabled={u.id === selfId}
                       className={cn(
                         'rounded-full px-2.5 py-0.5 text-xs font-medium disabled:opacity-60',
-                        u.active
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-secondary text-muted-foreground',
+                        u.active ? 'bg-emerald-100 text-emerald-700' : 'bg-secondary text-muted-foreground',
                       )}
                     >
                       {u.active ? 'Ativo' : 'Inativo'}
@@ -200,8 +199,11 @@ export function TeamManager({
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">Papel</label>
                 <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} className={FIELD}>
-                  <option value="case_manager">{ROLE_LABEL.case_manager}</option>
-                  <option value="admin">{ROLE_LABEL.admin}</option>
+                  {STAFF_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABELS[r]}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-1">

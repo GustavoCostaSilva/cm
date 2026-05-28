@@ -1,16 +1,24 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard } from 'lucide-react'
+import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
+import { canAccessClient } from '@/lib/perms'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { StageManager } from '@/components/staff/StageManager'
 import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
-import { ClientStatusControl } from '@/components/staff/ClientStatusControl'
+import { CaseControls } from '@/components/staff/CaseControls'
 import { StaffHistory } from '@/components/staff/StaffHistory'
 import { progressPercent, isCaseComplete, currentStage, formatDate } from '@/lib/case-utils'
-import { STAGE_LABELS } from '@/types'
+import { STAGE_LABELS, ELIGIBILITY_LABELS } from '@/types'
+import { cn } from '@/lib/utils'
+
+const ELIG_CLS = {
+  pending: 'bg-secondary text-muted-foreground',
+  eligible: 'bg-emerald-100 text-emerald-700',
+  ineligible: 'bg-destructive/10 text-destructive',
+} as const
 
 export default async function ClientDetailPage({
   params,
@@ -21,8 +29,7 @@ export default async function ClientDetailPage({
   const session = await getStaffSession()
   const client = await db.clients.get(id)
   if (!client) notFound()
-  // Case managers can only open their own clients.
-  if (session?.role === 'case_manager' && client.assignedTo !== session.sub) notFound()
+  if (session && !canAccessClient(session, client)) notFound()
 
   const [events, deadlines, manager] = await Promise.all([
     db.events.byClient(id),
@@ -47,9 +54,18 @@ export default async function ClientDetailPage({
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              {client.fullName}
-            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">{client.fullName}</h1>
+              {client.urgent && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                  <AlertTriangle className="size-3" />
+                  URGENTE
+                </span>
+              )}
+              <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', ELIG_CLS[client.eligibility])}>
+                {ELIGIBILITY_LABELS[client.eligibility]}
+              </span>
+            </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <IdCard className="size-3.5" />
@@ -80,7 +96,7 @@ export default async function ClientDetailPage({
               <ClipboardList className="size-4 text-primary" />
               <h2 className="text-sm font-semibold text-foreground">Etapas do caso</h2>
             </div>
-            <StageManager clientId={client.id} stages={client.stages} nowIso={nowIso} />
+            <StageManager clientId={client.id} stages={client.stages} urgent={client.urgent} nowIso={nowIso} />
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -102,10 +118,17 @@ export default async function ClientDetailPage({
 
         <aside className="space-y-6">
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">Informações</h2>
-              <ClientStatusControl clientId={client.id} status={client.status} />
-            </div>
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Gestão do caso</h2>
+            <CaseControls
+              clientId={client.id}
+              status={client.status}
+              eligibility={client.eligibility}
+              urgent={client.urgent}
+            />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Informações</h2>
             <dl className="space-y-2 text-sm">
               <Info label="E-mail" value={client.email} />
               <Info label="Telefone" value={client.phone} />

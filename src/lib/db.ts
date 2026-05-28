@@ -19,7 +19,9 @@ function toClient(r: Row): Client {
     email: s(r.email),
     phone: s(r.phone),
     whatsapp: s(r.whatsapp),
-    caseType: s(r.case_type),
+    caseType: s(r.case_type) as Client['caseType'],
+    urgent: Boolean(r.urgent),
+    eligibility: (r.eligibility as Client['eligibility']) ?? 'pending',
     assignedTo: s(r.assigned_to),
     status: r.status as Client['status'],
     createdAt: String(r.created_at),
@@ -36,6 +38,8 @@ function fromClient(c: Partial<Client>): Row {
   if (c.phone !== undefined) r.phone = c.phone
   if (c.whatsapp !== undefined) r.whatsapp = c.whatsapp
   if (c.caseType !== undefined) r.case_type = c.caseType
+  if (c.urgent !== undefined) r.urgent = c.urgent
+  if (c.eligibility !== undefined) r.eligibility = c.eligibility
   if (c.assignedTo !== undefined) r.assigned_to = c.assignedTo
   if (c.status !== undefined) r.status = c.status
   if (c.createdAt !== undefined) r.created_at = c.createdAt

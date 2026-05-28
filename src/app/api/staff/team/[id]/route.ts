@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { hashPassword } from '@/lib/auth'
-import type { StaffUser, StaffRole } from '@/types'
+import { STAFF_ROLES, type StaffUser } from '@/types'
 
-// Update a staff member: name, role, active, or reset password (admin only).
+// Update a staff member: name, role, active, or reset password (coordenador only).
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getStaffSession()
-  if (!session || session.role !== 'admin') {
+  if (!session || session.role !== 'coordenador') {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
   }
   const { id } = await params
@@ -20,14 +20,17 @@ export async function PATCH(
   const body = await req.json().catch(() => ({}))
   const patch: Partial<StaffUser> = {}
   if (typeof body.name === 'string' && body.name.trim()) patch.name = body.name.trim()
-  if (body.role === 'admin' || body.role === 'case_manager') patch.role = body.role as StaffRole
+  if (typeof body.role === 'string' && STAFF_ROLES.includes(body.role)) patch.role = body.role
   if (typeof body.active === 'boolean') patch.active = body.active
   if (typeof body.password === 'string' && body.password.length >= 6) {
     patch.passwordHash = hashPassword(body.password)
   }
 
-  // Don't let an admin lock themselves out by self-deactivating or self-demoting.
-  if (id === session.sub && (patch.active === false || patch.role === 'case_manager')) {
+  // Don't let a coordenador lock themselves out by self-deactivating or self-demoting.
+  if (
+    id === session.sub &&
+    (patch.active === false || (patch.role !== undefined && patch.role !== 'coordenador'))
+  ) {
     return NextResponse.json(
       { error: 'Você não pode desativar ou rebaixar a própria conta.' },
       { status: 400 },

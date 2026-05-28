@@ -17,6 +17,7 @@ const ICONS: Record<CaseEventType, typeof FileText> = {
   stage_completed: CheckCircle2,
   flag: Flag,
   deadline: CalendarClock,
+  uscis_letter: CalendarClock,
 }
 
 function tone(type: CaseEventType): string {

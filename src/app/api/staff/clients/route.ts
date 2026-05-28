@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { normalizeDob } from '@/lib/auth'
-import { freshStages, type Client } from '@/types'
+import { freshStages, VISA_TYPES, type Client, type VisaType } from '@/types'
 
 export async function POST(req: NextRequest) {
   const session = await getStaffSession()
@@ -27,9 +27,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Admin may assign to any staff id; a case manager owns the clients they create.
-  const assignedTo =
-    session.role === 'admin' && body.assignedTo ? String(body.assignedTo) : session.sub
+  const visa: VisaType | null = VISA_TYPES.includes(body.caseType) ? body.caseType : null
+  // Owner (case manager). A case manager creating a client owns it by default.
+  const assignedTo = body.assignedTo
+    ? String(body.assignedTo)
+    : session.role === 'case_manager'
+      ? session.sub
+      : null
 
   const now = new Date().toISOString()
   const stages = freshStages()
@@ -44,7 +48,9 @@ export async function POST(req: NextRequest) {
     email: body.email ? String(body.email).trim() : null,
     phone: body.phone ? String(body.phone).trim() : null,
     whatsapp: body.whatsapp ? String(body.whatsapp).replace(/\D/g, '') : null,
-    caseType: body.caseType ? String(body.caseType).trim() : null,
+    caseType: visa,
+    urgent: Boolean(body.urgent),
+    eligibility: 'pending',
     assignedTo,
     status: 'active',
     createdAt: now,
