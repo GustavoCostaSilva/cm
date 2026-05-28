@@ -56,10 +56,12 @@ function DeadlineCell({ due }: { due: string }) {
 export function ClientsTable({
   rows,
   managers,
+  attorneys,
   canFilterManager,
 }: {
   rows: ClientRow[]
   managers: { id: string; name: string }[]
+  attorneys: { id: string; name: string }[]
   canFilterManager: boolean
 }) {
   const router = useRouter()
@@ -87,7 +89,7 @@ export function ClientsTable({
           <h1 className="text-xl font-bold tracking-tight text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground">{rows.length} cliente(s)</p>
         </div>
-        <NewClientDialog managers={managers} canAssign={canFilterManager} />
+        <NewClientDialog managers={managers} attorneys={attorneys} canAssign={canFilterManager} />
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">

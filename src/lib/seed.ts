@@ -65,8 +65,10 @@ interface StaffSeed {
 }
 const STAFF_SEED: StaffSeed[] = [
   { id: 'staff_coord', name: 'Coordenação de Casos', email: 'admin@govisa.local', role: 'coordenador' },
-  { id: 'staff_marina', name: 'Dra. Marina Alves', email: 'marina@govisa.local', role: 'case_manager' },
-  { id: 'staff_rafael', name: 'Dr. Rafael Lima', email: 'rafael@govisa.local', role: 'case_manager' },
+  { id: 'staff_jeffrey', name: 'Mr. Jeffrey Weingrad', email: 'jeffrey@govisa.local', role: 'advogado' },
+  { id: 'staff_diana', name: 'Mrs. Diana Carter', email: 'diana@govisa.local', role: 'advogado' },
+  { id: 'staff_marina', name: 'Marina Alves', email: 'marina@govisa.local', role: 'case_manager' },
+  { id: 'staff_rafael', name: 'Rafael Lima', email: 'rafael@govisa.local', role: 'case_manager' },
   { id: 'staff_coletor', name: 'Beatriz Nunes (Coletora)', email: 'coletor@govisa.local', role: 'assistente_coletor' },
   { id: 'staff_revisor', name: 'Paulo Andrade (Revisor)', email: 'revisor@govisa.local', role: 'revisor_tecnico' },
   { id: 'staff_juridico', name: 'Camila Reis (Jurídico)', email: 'juridico@govisa.local', role: 'assistente_juridico' },
@@ -82,6 +84,7 @@ interface Spec {
   whatsapp: string
   visa: VisaType
   manager: string
+  attorney: string
   current: number
   status: ClientStatus
   eligibility: Eligibility
@@ -89,16 +92,18 @@ interface Spec {
   complete?: boolean
 }
 
+const JEFFREY = 'Mr. Jeffrey Weingrad'
+const DIANA = 'Mrs. Diana Carter'
 const SPECS: Spec[] = [
-  { fullName: 'Ana Beatriz Souza', passport: 'FN481223', dob: '1991-03-14', email: 'ana.souza@example.com', phone: '+55 11 98123-4567', whatsapp: '5511981234567', visa: 'T-Visa', manager: 'Dra. Marina Alves', current: 1, status: 'active', eligibility: 'eligible' },
-  { fullName: 'Carlos Mendes Oliveira', passport: 'GH772900', dob: '1985-11-02', email: 'carlos.mendes@example.com', phone: '+55 21 99622-1180', whatsapp: '5521996221180', visa: 'U-Visa', manager: 'Dr. Rafael Lima', current: 3, status: 'active', eligibility: 'eligible' },
-  { fullName: 'Mariana Costa Lima', passport: 'FP315544', dob: '1993-07-22', email: 'mariana.lima@example.com', phone: '+55 31 98711-2031', whatsapp: '5531987112031', visa: 'VAWA', manager: 'Dra. Marina Alves', current: 5, status: 'active', eligibility: 'eligible', urgent: true },
-  { fullName: 'João Pedro Almeida', passport: 'GA908112', dob: '1979-01-30', email: 'joao.almeida@example.com', phone: '+55 11 99014-7782', whatsapp: '5511990147782', visa: 'U-Visa', manager: 'Dr. Rafael Lima', current: 6, status: 'active', eligibility: 'eligible' },
-  { fullName: 'Fernanda Ribeiro', passport: 'FN660241', dob: '1996-05-09', email: 'fernanda.ribeiro@example.com', phone: '+55 41 98330-5512', whatsapp: '5541983305512', visa: 'T-Visa', manager: 'Dra. Marina Alves', current: 9, status: 'active', eligibility: 'eligible' },
-  { fullName: 'Lucas Martins', passport: 'GB124870', dob: '1988-09-18', email: 'lucas.martins@example.com', phone: '+55 51 99880-2244', whatsapp: '5551998802244', visa: 'VAWA', manager: 'Dr. Rafael Lima', current: 2, status: 'paused', eligibility: 'pending' },
-  { fullName: 'Patrícia Gomes', passport: 'FP771039', dob: '1982-12-05', email: 'patricia.gomes@example.com', phone: '+55 11 97444-9001', whatsapp: '5511974449001', visa: 'U-Visa', manager: 'Dra. Marina Alves', current: 10, status: 'active', eligibility: 'eligible' },
-  { fullName: 'Rafael Teixeira', passport: 'GH205518', dob: '1994-04-27', email: 'rafael.teixeira@example.com', phone: '+55 19 98122-7766', whatsapp: '5519981227766', visa: 'T-Visa', manager: 'Dr. Rafael Lima', current: 0, status: 'active', eligibility: 'pending', urgent: true },
-  { fullName: 'Juliana Carvalho', passport: 'FN339907', dob: '1990-08-13', email: 'juliana.carvalho@example.com', phone: '+55 71 99655-3300', whatsapp: '5571996553300', visa: 'VAWA', manager: 'Dra. Marina Alves', current: 4, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Ana Beatriz Souza', passport: 'FN481223', dob: '1991-03-14', email: 'ana.souza@example.com', phone: '+55 11 98123-4567', whatsapp: '5511981234567', visa: 'T-Visa', manager: 'Marina Alves', attorney: JEFFREY, current: 1, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Carlos Mendes Oliveira', passport: 'GH772900', dob: '1985-11-02', email: 'carlos.mendes@example.com', phone: '+55 21 99622-1180', whatsapp: '5521996221180', visa: 'U-Visa', manager: 'Rafael Lima', attorney: DIANA, current: 3, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Mariana Costa Lima', passport: 'FP315544', dob: '1993-07-22', email: 'mariana.lima@example.com', phone: '+55 31 98711-2031', whatsapp: '5531987112031', visa: 'VAWA', manager: 'Marina Alves', attorney: JEFFREY, current: 5, status: 'active', eligibility: 'eligible', urgent: true },
+  { fullName: 'João Pedro Almeida', passport: 'GA908112', dob: '1979-01-30', email: 'joao.almeida@example.com', phone: '+55 11 99014-7782', whatsapp: '5511990147782', visa: 'U-Visa', manager: 'Rafael Lima', attorney: DIANA, current: 6, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Fernanda Ribeiro', passport: 'FN660241', dob: '1996-05-09', email: 'fernanda.ribeiro@example.com', phone: '+55 41 98330-5512', whatsapp: '5541983305512', visa: 'T-Visa', manager: 'Marina Alves', attorney: JEFFREY, current: 9, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Lucas Martins', passport: 'GB124870', dob: '1988-09-18', email: 'lucas.martins@example.com', phone: '+55 51 99880-2244', whatsapp: '5551998802244', visa: 'VAWA', manager: 'Rafael Lima', attorney: DIANA, current: 2, status: 'paused', eligibility: 'pending' },
+  { fullName: 'Patrícia Gomes', passport: 'FP771039', dob: '1982-12-05', email: 'patricia.gomes@example.com', phone: '+55 11 97444-9001', whatsapp: '5511974449001', visa: 'U-Visa', manager: 'Marina Alves', attorney: JEFFREY, current: 10, status: 'active', eligibility: 'eligible' },
+  { fullName: 'Rafael Teixeira', passport: 'GH205518', dob: '1994-04-27', email: 'rafael.teixeira@example.com', phone: '+55 19 98122-7766', whatsapp: '5519981227766', visa: 'T-Visa', manager: 'Rafael Lima', attorney: DIANA, current: 0, status: 'active', eligibility: 'pending', urgent: true },
+  { fullName: 'Juliana Carvalho', passport: 'FN339907', dob: '1990-08-13', email: 'juliana.carvalho@example.com', phone: '+55 71 99655-3300', whatsapp: '5571996553300', visa: 'VAWA', manager: 'Marina Alves', attorney: JEFFREY, current: 4, status: 'active', eligibility: 'eligible' },
 ]
 
 export const DEFAULT_OFFICE: OfficeConfig = {
@@ -183,6 +188,7 @@ export function buildSeed(): SeedData {
       urgent: spec.urgent ?? false,
       eligibility: spec.eligibility,
       assignedTo: idByName[spec.manager] ?? null,
+      attorneyId: idByName[spec.attorney] ?? null,
       status: spec.status,
       createdAt,
       stages,

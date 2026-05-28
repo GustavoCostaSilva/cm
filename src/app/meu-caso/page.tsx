@@ -47,6 +47,7 @@ export default async function MeuCasoPage() {
   const nextDeadline =
     (await db.deadlines.byClient(client.id)).filter((d) => d.status === 'pending')[0] ?? null
   const manager = client.assignedTo ? await db.staff.get(client.assignedTo) : null
+  const attorney = client.attorneyId ? await db.staff.get(client.attorneyId) : null
 
   const milestones = clientMilestones(client).map((m) => ({
     ...m,
@@ -142,10 +143,20 @@ export default async function MeuCasoPage() {
               )}
             </section>
 
-            {manager && (
+            {(attorney || manager) && (
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h2 className="mb-1 text-sm font-semibold text-foreground">{t.teamTitle}</h2>
-                <p className="text-sm text-muted-foreground">{manager.name}</p>
+                {attorney && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">{t.attorneyTitle}</h2>
+                    <p className="text-sm text-muted-foreground">{attorney.name}</p>
+                  </div>
+                )}
+                {manager && (
+                  <div className={attorney ? 'mt-3 border-t border-border pt-3' : ''}>
+                    <h2 className="text-sm font-semibold text-foreground">{t.caseManagerTitle}</h2>
+                    <p className="text-sm text-muted-foreground">{manager.name}</p>
+                  </div>
+                )}
               </section>
             )}
           </aside>

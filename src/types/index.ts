@@ -54,6 +54,7 @@ export const STAGE_DESCRIPTIONS: Record<StageKey, string> = {
 // ─────────────────────────────────────────────────────────────
 export const STAFF_ROLES = [
   'coordenador',
+  'advogado',
   'assistente_coletor',
   'case_manager',
   'revisor_tecnico',
@@ -64,6 +65,7 @@ export type StaffRole = (typeof STAFF_ROLES)[number]
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
   coordenador: 'Coordenador de Casos',
+  advogado: 'Advogado(a) responsável',
   assistente_coletor: 'Assistente — Coletor',
   case_manager: 'Case Manager',
   revisor_tecnico: 'Revisor Técnico',
@@ -298,6 +300,7 @@ export interface Client {
   urgent: boolean
   eligibility: Eligibility
   assignedTo: string | null // case manager (staff id)
+  attorneyId: string | null // responsible attorney (staff id, role advogado)
   status: ClientStatus
   createdAt: string
   stages: StageProgress[]

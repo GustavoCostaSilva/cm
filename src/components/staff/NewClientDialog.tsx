@@ -15,6 +15,7 @@ const EMPTY = {
   whatsapp: '',
   caseType: '',
   assignedTo: '',
+  attorneyId: '',
   urgent: false,
 }
 
@@ -23,9 +24,11 @@ const FIELD =
 
 export function NewClientDialog({
   managers,
+  attorneys,
   canAssign,
 }: {
   managers: { id: string; name: string }[]
+  attorneys: { id: string; name: string }[]
   canAssign: boolean
 }) {
   const router = useRouter()
@@ -130,6 +133,18 @@ export function NewClientDialog({
                     </select>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">Advogado responsável</label>
+                <select value={form.attorneyId} onChange={setText('attorneyId')} className={FIELD}>
+                  <option value="">Selecione…</option>
+                  {attorneys.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

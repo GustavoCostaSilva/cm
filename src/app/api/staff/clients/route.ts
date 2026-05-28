@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     urgent: Boolean(body.urgent),
     eligibility: 'pending',
     assignedTo,
+    attorneyId: body.attorneyId ? String(body.attorneyId) : null,
     status: 'active',
     createdAt: now,
     stages,

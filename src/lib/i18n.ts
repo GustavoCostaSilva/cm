@@ -27,6 +27,8 @@ export interface Dict {
   nextDeadlineTitle: string
   noDeadline: string
   teamTitle: string
+  attorneyTitle: string
+  caseManagerTitle: string
   updatesTitle: string
   noUpdates: string
   documentsTitle: string
@@ -70,6 +72,8 @@ export const DICT: Record<Locale, Dict> = {
     nextDeadlineTitle: 'Próximo prazo',
     noDeadline: 'Nenhum prazo pendente no momento.',
     teamTitle: 'Equipe responsável',
+    attorneyTitle: 'Advogado responsável',
+    caseManagerTitle: 'Case Manager responsável',
     updatesTitle: 'Atualizações',
     noUpdates: 'Ainda não há atualizações registradas.',
     documentsTitle: 'Seus documentos',
@@ -109,6 +113,8 @@ export const DICT: Record<Locale, Dict> = {
     nextDeadlineTitle: 'Next deadline',
     noDeadline: 'No pending deadlines right now.',
     teamTitle: 'Your legal team',
+    attorneyTitle: 'Responsible attorney',
+    caseManagerTitle: 'Responsible case manager',
     updatesTitle: 'Updates',
     noUpdates: 'No updates yet.',
     documentsTitle: 'Your documents',
@@ -148,6 +154,8 @@ export const DICT: Record<Locale, Dict> = {
     nextDeadlineTitle: 'Próximo plazo',
     noDeadline: 'Sin plazos pendientes por ahora.',
     teamTitle: 'Su equipo responsable',
+    attorneyTitle: 'Abogado responsable',
+    caseManagerTitle: 'Case manager responsable',
     updatesTitle: 'Novedades',
     noUpdates: 'Aún no hay novedades.',
     documentsTitle: 'Sus documentos',

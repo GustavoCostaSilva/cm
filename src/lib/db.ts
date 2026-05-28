@@ -23,6 +23,7 @@ function toClient(r: Row): Client {
     urgent: Boolean(r.urgent),
     eligibility: (r.eligibility as Client['eligibility']) ?? 'pending',
     assignedTo: s(r.assigned_to),
+    attorneyId: s(r.attorney_id),
     status: r.status as Client['status'],
     createdAt: String(r.created_at),
     stages: (r.stages as Client['stages']) ?? [],
@@ -42,6 +43,7 @@ function fromClient(c: Partial<Client>): Row {
   if (c.urgent !== undefined) r.urgent = c.urgent
   if (c.eligibility !== undefined) r.eligibility = c.eligibility
   if (c.assignedTo !== undefined) r.assigned_to = c.assignedTo
+  if (c.attorneyId !== undefined) r.attorney_id = c.attorneyId
   if (c.status !== undefined) r.status = c.status
   if (c.createdAt !== undefined) r.created_at = c.createdAt
   if (c.stages !== undefined) r.stages = c.stages

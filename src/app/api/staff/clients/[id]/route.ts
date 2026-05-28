@@ -33,6 +33,7 @@ export async function PATCH(
     patch.eligibility = body.eligibility as Eligibility
   }
   if (Array.isArray(body.checklistDone)) patch.checklistDone = body.checklistDone.map(String)
+  if (typeof body.attorneyId === 'string') patch.attorneyId = body.attorneyId.trim() || null
   // Reassigning the owner is coordenador-only.
   if (isCoordinator(session.role) && typeof body.assignedTo === 'string') {
     patch.assignedTo = body.assignedTo.trim() || null

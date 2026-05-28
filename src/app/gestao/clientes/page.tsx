@@ -21,6 +21,9 @@ export default async function ClientesPage() {
   const managers = staff
     .filter((m) => m.role === 'case_manager')
     .map((m) => ({ id: m.id, name: m.name }))
+  const attorneys = staff
+    .filter((m) => m.role === 'advogado')
+    .map((m) => ({ id: m.id, name: m.name }))
 
   const rows: ClientRow[] = clients.map((c) => {
     const next =
@@ -48,6 +51,7 @@ export default async function ClientesPage() {
       <ClientsTable
         rows={rows}
         managers={managers}
+        attorneys={attorneys}
         canFilterManager={canSeeAllClients(session.role)}
       />
     </StaffShell>

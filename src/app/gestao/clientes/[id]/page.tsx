@@ -11,6 +11,7 @@ import { DocumentsManager } from '@/components/staff/DocumentsManager'
 import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
 import { CaseControls } from '@/components/staff/CaseControls'
+import { AssignControls } from '@/components/staff/AssignControls'
 import { StaffHistory } from '@/components/staff/StaffHistory'
 import { MessageThread } from '@/components/MessageThread'
 import { MessageComposer } from '@/components/MessageComposer'
@@ -36,13 +37,17 @@ export default async function ClientDetailPage({
   if (!client) notFound()
   if (session && !canAccessClient(session, client)) notFound()
 
-  const [events, deadlines, manager, documents, messages] = await Promise.all([
+  const [events, deadlines, documents, messages, staffAll] = await Promise.all([
     db.events.byClient(id),
     db.deadlines.byClient(id),
-    client.assignedTo ? db.staff.get(client.assignedTo) : Promise.resolve(undefined),
     db.documents.byClient(id),
     db.messages.byClient(id),
+    db.staff.all(),
   ])
+  const manager = client.assignedTo ? (staffAll.find((m) => m.id === client.assignedTo) ?? null) : null
+  const attorney = client.attorneyId ? (staffAll.find((m) => m.id === client.attorneyId) ?? null) : null
+  const attorneys = staffAll.filter((m) => m.role === 'advogado').map((m) => ({ id: m.id, name: m.name }))
+  const managers = staffAll.filter((m) => m.role === 'case_manager').map((m) => ({ id: m.id, name: m.name }))
   const pct = progressPercent(client)
   const complete = isCaseComplete(client)
   const nowIso = new Date().toISOString()
@@ -151,6 +156,18 @@ export default async function ClientDetailPage({
 
         <aside className="space-y-6">
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Responsáveis</h2>
+            <AssignControls
+              clientId={client.id}
+              attorneyId={client.attorneyId}
+              assignedTo={client.assignedTo}
+              attorneys={attorneys}
+              managers={managers}
+              canAssignManager={session?.role === 'coordenador'}
+            />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="mb-3 text-sm font-semibold text-foreground">Gestão do caso</h2>
             <CaseControls
               clientId={client.id}
@@ -166,7 +183,8 @@ export default async function ClientDetailPage({
               <Info label="E-mail" value={client.email} />
               <Info label="Telefone" value={client.phone} />
               <Info label="WhatsApp" value={client.whatsapp} />
-              <Info label="Responsável" value={manager?.name ?? null} />
+              <Info label="Advogado" value={attorney?.name ?? null} />
+              <Info label="Case Manager" value={manager?.name ?? null} />
               <Info label="Cliente desde" value={formatDate(client.createdAt)} />
             </dl>
           </section>
