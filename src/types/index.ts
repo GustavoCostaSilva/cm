@@ -353,6 +353,15 @@ export interface CaseDocument {
   visibleToClient: boolean
 }
 
+export interface Message {
+  id: string
+  clientId: string
+  sender: 'client' | 'staff'
+  authorName: string
+  text: string
+  createdAt: string
+}
+
 // Fresh ordered stage list for a brand-new client.
 export function freshStages(): StageProgress[] {
   return STAGE_KEYS.map((key) => ({

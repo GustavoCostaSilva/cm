@@ -1,4 +1,4 @@
-import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig, CaseDocument } from '@/types'
+import type { Client, CaseEvent, Deadline, StaffUser, OfficeConfig, CaseDocument, Message } from '@/types'
 import { sb } from './supabase'
 import { buildSeed } from './seed'
 
@@ -120,6 +120,26 @@ function fromDocument(d: CaseDocument): Row {
     uploaded_by: d.uploadedBy,
     uploaded_at: d.uploadedAt,
     visible_to_client: d.visibleToClient,
+  }
+}
+function toMessage(r: Row): Message {
+  return {
+    id: String(r.id),
+    clientId: String(r.client_id),
+    sender: r.sender as Message['sender'],
+    authorName: String(r.author_name),
+    text: String(r.text),
+    createdAt: String(r.created_at),
+  }
+}
+function fromMessage(m: Message): Row {
+  return {
+    id: m.id,
+    client_id: m.clientId,
+    sender: m.sender,
+    author_name: m.authorName,
+    text: m.text,
+    created_at: m.createdAt,
   }
 }
 function toStaff(r: Row): StaffUser {
@@ -291,6 +311,21 @@ export const db = {
     },
     async remove(id: string): Promise<void> {
       await sb().from('portal_documents').delete().eq('id', id)
+    },
+  },
+
+  messages: {
+    async byClient(id: string): Promise<Message[]> {
+      await ensureSeeded()
+      const { data } = await sb()
+        .from('portal_messages')
+        .select('*')
+        .eq('client_id', id)
+        .order('created_at')
+      return rows<Row>(data).map(toMessage)
+    },
+    async add(m: Message): Promise<void> {
+      await sb().from('portal_messages').insert(fromMessage(m))
     },
   },
 

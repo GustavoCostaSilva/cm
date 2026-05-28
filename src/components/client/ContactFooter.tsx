@@ -1,11 +1,12 @@
 import { MessageCircle, Phone, Mail, ShieldCheck } from 'lucide-react'
 import type { OfficeConfig } from '@/types'
+import type { Dict } from '@/lib/i18n'
 
 function telHref(phone: string): string {
   return `tel:${phone.replace(/[^+\d]/g, '')}`
 }
 
-export function ContactFooter({ office }: { office: OfficeConfig }) {
+export function ContactFooter({ office, t }: { office: OfficeConfig; t?: Dict }) {
   const year = new Date().getFullYear()
   const waHref = `https://wa.me/${office.whatsapp}`
 
@@ -14,9 +15,7 @@ export function ContactFooter({ office }: { office: OfficeConfig }) {
       <div className="mx-auto w-full max-w-5xl px-5 py-8">
         <div className="flex items-start gap-3 rounded-xl border border-primary/10 bg-secondary/60 p-4">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {office.disclaimerText}
-          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{office.disclaimerText}</p>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -31,11 +30,9 @@ export function ContactFooter({ office }: { office: OfficeConfig }) {
             </span>
             <span className="min-w-0">
               <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                WhatsApp
+                {t?.fWhatsapp ?? 'WhatsApp'}
               </span>
-              <span className="block truncate text-sm font-semibold text-foreground">
-                Falar agora
-              </span>
+              <span className="block truncate text-sm font-semibold text-foreground">{office.whatsapp ? 'WhatsApp' : '—'}</span>
             </span>
           </a>
 
@@ -48,11 +45,9 @@ export function ContactFooter({ office }: { office: OfficeConfig }) {
             </span>
             <span className="min-w-0">
               <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Telefone
+                {t?.fPhone ?? 'Telefone'}
               </span>
-              <span className="block truncate text-sm font-semibold text-foreground">
-                {office.phone}
-              </span>
+              <span className="block truncate text-sm font-semibold text-foreground">{office.phone}</span>
             </span>
           </a>
 
@@ -65,11 +60,9 @@ export function ContactFooter({ office }: { office: OfficeConfig }) {
             </span>
             <span className="min-w-0">
               <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                E-mail
+                {t?.fEmail ?? 'E-mail'}
               </span>
-              <span className="block truncate text-sm font-semibold text-foreground">
-                {office.email}
-              </span>
+              <span className="block truncate text-sm font-semibold text-foreground">{office.email}</span>
             </span>
           </a>
         </div>

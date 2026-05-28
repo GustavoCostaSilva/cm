@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScrollText, Loader2, ArrowRight } from 'lucide-react'
+import type { Dict } from '@/lib/i18n'
 
-export function ClientLoginForm() {
+export function ClientLoginForm({ t }: { t: Dict }) {
   const router = useRouter()
   const [passport, setPassport] = useState('')
   const [dob, setDob] = useState('')
@@ -48,19 +49,13 @@ export function ClientLoginForm() {
           <div className="mx-auto flex size-14 items-center justify-center rounded-xl bg-gradient-to-br from-[#b22234] to-[#1b3a6b] shadow-sm ring-1 ring-black/5">
             <ScrollText className="size-7 text-white" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground">
-            Portal do Cliente
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Acompanhe o andamento do seu caso
-          </p>
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground">{t.loginTitle}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t.loginSubtitle}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-4 px-8 py-7">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary">
-              Número do passaporte
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-primary">{t.passportLabel}</label>
             <input
               type="text"
               autoFocus
@@ -69,14 +64,12 @@ export function ClientLoginForm() {
               value={passport}
               onChange={(e) => setPassport(e.target.value.toUpperCase())}
               className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
-              placeholder="Ex.: FN481223"
+              placeholder={t.passportPlaceholder}
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-primary">
-              Data de nascimento
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-primary">{t.dobLabel}</label>
             <input
               type="date"
               required
@@ -84,9 +77,7 @@ export function ClientLoginForm() {
               onChange={(e) => setDob(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Sua data de nascimento é a sua senha de acesso.
-            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">{t.dobHint}</p>
           </div>
 
           {error && (
@@ -100,12 +91,8 @@ export function ClientLoginForm() {
             disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
           >
-            {loading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ArrowRight className="size-4" />
-            )}
-            Acessar meu caso
+            {loading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+            {t.loginCta}
           </button>
         </form>
       </div>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks, FolderOpen } from 'lucide-react'
+import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks, FolderOpen, MessagesSquare } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
@@ -12,6 +12,8 @@ import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
 import { CaseControls } from '@/components/staff/CaseControls'
 import { StaffHistory } from '@/components/staff/StaffHistory'
+import { MessageThread } from '@/components/MessageThread'
+import { MessageComposer } from '@/components/MessageComposer'
 import { progressPercent, isCaseComplete, currentStage, formatDate } from '@/lib/case-utils'
 import { STAGE_LABELS, ELIGIBILITY_LABELS } from '@/types'
 import { cn } from '@/lib/utils'
@@ -33,11 +35,12 @@ export default async function ClientDetailPage({
   if (!client) notFound()
   if (session && !canAccessClient(session, client)) notFound()
 
-  const [events, deadlines, manager, documents] = await Promise.all([
+  const [events, deadlines, manager, documents, messages] = await Promise.all([
     db.events.byClient(id),
     db.deadlines.byClient(id),
     client.assignedTo ? db.staff.get(client.assignedTo) : Promise.resolve(undefined),
     db.documents.byClient(id),
+    db.messages.byClient(id),
   ])
   const pct = progressPercent(client)
   const complete = isCaseComplete(client)
@@ -116,6 +119,15 @@ export default async function ClientDetailPage({
               <h2 className="text-sm font-semibold text-foreground">Documentos</h2>
             </div>
             <DocumentsManager clientId={client.id} documents={documents} />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <MessagesSquare className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Mensagens com o cliente</h2>
+            </div>
+            <MessageThread messages={messages} viewer="staff" />
+            <MessageComposer endpoint={`/api/staff/clients/${client.id}/messages`} />
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
