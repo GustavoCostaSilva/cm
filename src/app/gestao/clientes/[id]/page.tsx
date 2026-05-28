@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, ClipboardList, MessageSquarePlus, History, CalendarClock, IdCard, AlertTriangle, ListChecks } from 'lucide-react'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { StageManager } from '@/components/staff/StageManager'
+import { ChecklistManager } from '@/components/staff/ChecklistManager'
 import { UpdateComposer } from '@/components/staff/UpdateComposer'
 import { DeadlineManager } from '@/components/staff/DeadlineManager'
 import { CaseControls } from '@/components/staff/CaseControls'
@@ -97,6 +98,14 @@ export default async function ClientDetailPage({
               <h2 className="text-sm font-semibold text-foreground">Etapas do caso</h2>
             </div>
             <StageManager clientId={client.id} stages={client.stages} urgent={client.urgent} nowIso={nowIso} />
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <ListChecks className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Checklist do visto</h2>
+            </div>
+            <ChecklistManager clientId={client.id} visa={client.caseType} done={client.checklistDone} />
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">

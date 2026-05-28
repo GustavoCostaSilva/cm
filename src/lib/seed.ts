@@ -186,6 +186,7 @@ export function buildSeed(): SeedData {
       status: spec.status,
       createdAt,
       stages,
+      checklistDone: [],
     }
     clients.push(client)
     events.push(...buildEvents(client, spec.manager))

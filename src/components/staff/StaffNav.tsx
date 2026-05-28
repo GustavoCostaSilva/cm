@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, CalendarDays, UserCog, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, CalendarDays, UserCog, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { StaffRole } from '@/lib/session'
 
 const ITEMS = [
+  { href: '/gestao/painel', label: 'Painel', icon: LayoutDashboard, adminOnly: true },
   { href: '/gestao/clientes', label: 'Clientes', icon: Users, adminOnly: false },
   { href: '/gestao/agenda', label: 'Agenda', icon: CalendarDays, adminOnly: false },
   { href: '/gestao/equipe', label: 'Equipe', icon: UserCog, adminOnly: true },

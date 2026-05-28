@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     status: 'active',
     createdAt: now,
     stages,
+    checklistDone: [],
   }
   await db.clients.create(client)
   await db.events.add({

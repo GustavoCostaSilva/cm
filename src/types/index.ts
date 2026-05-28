@@ -158,6 +158,88 @@ export const ELIGIBILITY_LABELS: Record<Eligibility, string> = {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Document & form checklists per visa type (manual §7)
+// ─────────────────────────────────────────────────────────────
+export interface ChecklistItem {
+  id: string
+  label: string
+}
+export interface VisaChecklist {
+  forms: ChecklistItem[]
+  docs: ChecklistItem[]
+}
+
+export const CHECKLISTS: Record<VisaType, VisaChecklist> = {
+  'T-Visa': {
+    forms: [
+      { id: 't_i914', label: 'I-914 (Principal)' },
+      { id: 't_i914a', label: 'I-914A (Derivativo, se aplicável)' },
+      { id: 't_i192', label: 'I-192 (Waiver de inadmissibilidade, se necessário)' },
+      { id: 't_i765', label: 'I-765 (Autorização de trabalho)' },
+      { id: 't_g28', label: 'G-28 (Representação do advogado)' },
+    ],
+    docs: [
+      { id: 't_passport', label: 'Passaporte completo, com assinatura visível' },
+      { id: 't_photo', label: 'Foto padrão passaporte americano' },
+      { id: 't_birth', label: 'Certidão de nascimento + tradução juramentada' },
+      { id: 't_marriage', label: 'Certidão de casamento/divórcio (se aplicável) + tradução' },
+      { id: 't_statement', label: 'Relato pessoal detalhado (tráfico)' },
+      { id: 't_psych', label: 'Laudo psicológico' },
+      { id: 't_evidence', label: 'Evidências de coerção, exploração ou controle' },
+      { id: 't_witness', label: 'Declarações de testemunhas (se disponíveis)' },
+      { id: 't_imm', label: 'Documentos imigratórios (I-94, vistos anteriores)' },
+      { id: 't_address', label: 'Comprovante de endereço atual' },
+      { id: 't_records', label: 'Certidão de antecedentes criminais (se aplicável) + tradução' },
+    ],
+  },
+  'U-Visa': {
+    forms: [
+      { id: 'u_i918', label: 'I-918 (Principal)' },
+      { id: 'u_i918a', label: 'I-918 Supplement A (Derivativo, se aplicável)' },
+      { id: 'u_i918b', label: 'I-918 Supplement B (Certificação policial/judicial) — crítico' },
+      { id: 'u_i192', label: 'I-192 (Waiver, se necessário)' },
+      { id: 'u_i765', label: 'I-765 (Autorização de trabalho)' },
+      { id: 'u_g28', label: 'G-28' },
+    ],
+    docs: [
+      { id: 'u_passport', label: 'Passaporte completo, com assinatura visível' },
+      { id: 'u_photo', label: 'Foto padrão' },
+      { id: 'u_birth', label: 'Certidão de nascimento + tradução' },
+      { id: 'u_i918b_signed', label: 'I-918B assinada pela autoridade competente' },
+      { id: 'u_police', label: 'Boletim de ocorrência / relatório policial' },
+      { id: 'u_evidence', label: 'Evidências do crime qualificado' },
+      { id: 'u_statement', label: 'Declaração pessoal sobre o crime e cooperação' },
+      { id: 'u_coop', label: 'Prova de cooperação com autoridades' },
+      { id: 'u_imm', label: 'Documentos imigratórios' },
+      { id: 'u_address', label: 'Comprovante de endereço atual' },
+    ],
+  },
+  VAWA: {
+    forms: [
+      { id: 'v_i360', label: 'I-360 (Principal)' },
+      { id: 'v_i485', label: 'I-485 (Ajuste de status, quando aplicável)' },
+      { id: 'v_i765', label: 'I-765 (Autorização de trabalho)' },
+      { id: 'v_i131', label: 'I-131 (Advance Parole, quando aplicável)' },
+      { id: 'v_g28', label: 'G-28' },
+    ],
+    docs: [
+      { id: 'v_passport', label: 'Passaporte completo, com assinatura visível' },
+      { id: 'v_photo', label: 'Foto padrão' },
+      { id: 'v_birth', label: 'Certidão de nascimento + tradução' },
+      { id: 'v_marriage', label: 'Certidão de casamento com o abusador + tradução' },
+      { id: 'v_status', label: 'Prova de status imigratório do abusador (cidadão/LPR)' },
+      { id: 'v_cohab', label: 'Prova de convivência com o abusador' },
+      { id: 'v_abuse', label: 'Evidências de abuso físico, sexual ou psicológico' },
+      { id: 'v_statement', label: 'Declaração pessoal detalhada' },
+      { id: 'v_gmc', label: 'Declaração de bom caráter moral' },
+      { id: 'v_refs', label: 'Duas cartas de referência' },
+      { id: 'v_imm', label: 'Documentos imigratórios' },
+      { id: 'v_address', label: 'Comprovante de endereço atual' },
+    ],
+  },
+}
+
+// ─────────────────────────────────────────────────────────────
 // Core entities
 // ─────────────────────────────────────────────────────────────
 export type StageStatus = 'pending' | 'active' | 'done'
@@ -219,6 +301,7 @@ export interface Client {
   status: ClientStatus
   createdAt: string
   stages: StageProgress[]
+  checklistDone: string[] // ids of checked checklist items
 }
 
 export interface StaffUser {

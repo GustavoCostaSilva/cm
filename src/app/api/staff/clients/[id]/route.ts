@@ -32,6 +32,7 @@ export async function PATCH(
   if (body.eligibility === 'pending' || body.eligibility === 'eligible' || body.eligibility === 'ineligible') {
     patch.eligibility = body.eligibility as Eligibility
   }
+  if (Array.isArray(body.checklistDone)) patch.checklistDone = body.checklistDone.map(String)
   // Reassigning the owner is coordenador-only.
   if (isCoordinator(session.role) && typeof body.assignedTo === 'string') {
     patch.assignedTo = body.assignedTo.trim() || null

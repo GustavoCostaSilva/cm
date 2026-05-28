@@ -22,9 +22,10 @@ export function StaffLoginForm() {
         body: JSON.stringify({ email, password }),
       })
       if (res.ok) {
-        const next =
-          new URLSearchParams(window.location.search).get('next') || '/gestao/clientes'
-        router.push(next)
+        const d = await res.json().catch(() => ({}))
+        const next = new URLSearchParams(window.location.search).get('next')
+        const dest = next || (d.user?.role === 'coordenador' ? '/gestao/painel' : '/gestao/clientes')
+        router.push(dest)
         router.refresh()
       } else {
         const d = await res.json().catch(() => ({}))

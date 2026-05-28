@@ -26,6 +26,7 @@ function toClient(r: Row): Client {
     status: r.status as Client['status'],
     createdAt: String(r.created_at),
     stages: (r.stages as Client['stages']) ?? [],
+    checklistDone: (r.checklist_done as string[]) ?? [],
   }
 }
 function fromClient(c: Partial<Client>): Row {
@@ -44,6 +45,7 @@ function fromClient(c: Partial<Client>): Row {
   if (c.status !== undefined) r.status = c.status
   if (c.createdAt !== undefined) r.created_at = c.createdAt
   if (c.stages !== undefined) r.stages = c.stages
+  if (c.checklistDone !== undefined) r.checklist_done = c.checklistDone
   return r
 }
 function toEvent(r: Row): CaseEvent {
