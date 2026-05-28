@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { LogoutButton } from '@/components/LogoutButton'
 import { StaffNav } from './StaffNav'
+import { StaffNotifier } from './StaffNotifier'
 import type { StaffRole } from '@/lib/session'
 
 export function StaffShell({
@@ -31,6 +32,7 @@ export function StaffShell({
             <StaffNav role={role} />
           </div>
           <div className="flex items-center gap-2">
+            <StaffNotifier />
             <span className="hidden text-sm text-muted-foreground md:inline">{staffName}</span>
             <LogoutButton endpoint="/api/auth/staff-logout" redirectTo="/gestao" />
           </div>

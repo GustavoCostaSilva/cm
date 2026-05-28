@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Plus, Loader2, X, KeyRound } from 'lucide-react'
+import { Plus, Loader2, X, KeyRound, Trash2 } from 'lucide-react'
 import { STAFF_ROLES, ROLE_LABELS, type StaffUser } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +25,8 @@ export function TeamManager({
   const [busy, setBusy] = useState(false)
   const [resetFor, setResetFor] = useState<string | null>(null)
   const [newPw, setNewPw] = useState('')
+  const [deleteFor, setDeleteFor] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   async function patch(id: string, body: Record<string, unknown>) {
     const res = await fetch(`/api/staff/team/${id}`, {
@@ -73,6 +75,23 @@ export function TeamManager({
       toast.success('Senha redefinida.')
       setResetFor(null)
       setNewPw('')
+    }
+  }
+
+  async function doDelete(id: string) {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/staff/team/${id}`, { method: 'DELETE' })
+      const d = await res.json().catch(() => ({}))
+      if (res.ok) {
+        toast.success('Membro excluído.')
+        setDeleteFor(null)
+        router.refresh()
+      } else {
+        toast.error(d.error || 'Erro ao excluir.')
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -157,14 +176,39 @@ export function TeamManager({
                           <X className="size-4" />
                         </button>
                       </span>
+                    ) : deleteFor === u.id ? (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Excluir definitivamente?</span>
+                        <button
+                          onClick={() => doDelete(u.id)}
+                          disabled={deleting}
+                          className="inline-flex items-center gap-1 rounded-md bg-destructive px-2 py-1 text-xs font-medium text-white disabled:opacity-60"
+                        >
+                          {deleting ? <Loader2 className="size-3.5 animate-spin" /> : 'Excluir'}
+                        </button>
+                        <button onClick={() => setDeleteFor(null)} className="text-muted-foreground hover:text-foreground">
+                          <X className="size-4" />
+                        </button>
+                      </span>
                     ) : (
-                      <button
-                        onClick={() => setResetFor(u.id)}
-                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        <KeyRound className="size-3.5" />
-                        Redefinir senha
-                      </button>
+                      <span className="flex items-center gap-3">
+                        <button
+                          onClick={() => setResetFor(u.id)}
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <KeyRound className="size-3.5" />
+                          Redefinir senha
+                        </button>
+                        {u.id !== selfId && (
+                          <button
+                            onClick={() => setDeleteFor(u.id)}
+                            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="size-3.5" />
+                            Excluir
+                          </button>
+                        )}
+                      </span>
                     )}
                   </td>
                 </tr>

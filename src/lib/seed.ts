@@ -69,9 +69,6 @@ const STAFF_SEED: StaffSeed[] = [
   { id: 'staff_diana', name: 'Mrs. Diana Carter', email: 'diana@govisa.local', role: 'advogado' },
   { id: 'staff_marina', name: 'Marina Alves', email: 'marina@govisa.local', role: 'case_manager' },
   { id: 'staff_rafael', name: 'Rafael Lima', email: 'rafael@govisa.local', role: 'case_manager' },
-  { id: 'staff_coletor', name: 'Beatriz Nunes (Coletora)', email: 'coletor@govisa.local', role: 'assistente_coletor' },
-  { id: 'staff_revisor', name: 'Paulo Andrade (Revisor)', email: 'revisor@govisa.local', role: 'revisor_tecnico' },
-  { id: 'staff_juridico', name: 'Camila Reis (Jurídico)', email: 'juridico@govisa.local', role: 'assistente_juridico' },
 ]
 const idByName: Record<string, string> = Object.fromEntries(STAFF_SEED.map((m) => [m.name, m.id]))
 

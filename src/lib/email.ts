@@ -46,6 +46,7 @@ function renderEmail(p: {
   message: string
   portalUrl: string
   office: OfficeConfig
+  ctaLabel?: string
 }): string {
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#f4f6fb;font-family:Inter,Arial,Helvetica,sans-serif;color:#0f1b2d;">
   <div style="max-width:560px;margin:0 auto;padding:24px;">
@@ -55,8 +56,8 @@ function renderEmail(p: {
         <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#5b6b82;">${escapeHtml(p.office.officeName)}</div>
         <h1 style="font-size:20px;margin:8px 0 18px;color:#0f1b2d;">${escapeHtml(p.headline)}</h1>
         <p style="margin:0 0 12px;">Olá ${escapeHtml(p.clientName)},</p>
-        <p style="margin:0 0 22px;line-height:1.65;color:#34435a;">${escapeHtml(p.message)}</p>
-        <a href="${p.portalUrl}" style="display:inline-block;background:#1b3a6b;color:#fff;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:10px;">Acompanhar meu caso</a>
+        <p style="margin:0 0 22px;line-height:1.65;color:#34435a;white-space:pre-wrap;">${escapeHtml(p.message)}</p>
+        <a href="${p.portalUrl}" style="display:inline-block;background:#1b3a6b;color:#fff;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:10px;">${escapeHtml(p.ctaLabel ?? 'Acompanhar meu caso')}</a>
       </div>
       <div style="padding:18px 32px;background:#f8fafc;border-top:1px solid #e8edf5;font-size:13px;color:#5b6b82;line-height:1.6;">
         <strong style="color:#1b3a6b;">${escapeHtml(p.office.officeName)}</strong> · ${escapeHtml(p.office.attorney)}<br/>
@@ -79,6 +80,45 @@ export async function sendStageNotification(input: StageMailInput): Promise<Mail
   const subject = `${office.officeName} — ${headline}`
   const html = renderEmail({ headline, clientName, message, portalUrl, office })
   const text = `${headline}\n\nOlá ${clientName},\n\n${message}\n\nAcompanhe seu caso: ${portalUrl}\n\n${office.officeName} · ${office.attorney}\n${office.phone} · ${office.email}`
+
+  const t = transporter()
+  if (!t) {
+    console.log('\n────────── [email:dev — SMTP não configurado] ──────────')
+    console.log('Para:    ', to)
+    console.log('Assunto: ', subject)
+    console.log(text)
+    console.log('─────────────────────────────────────────────────────\n')
+    return { delivered: false, dev: true }
+  }
+
+  await t.sendMail({
+    from: process.env.SMTP_FROM || `${office.officeName} <${office.email}>`,
+    replyTo: office.email || undefined,
+    to,
+    subject,
+    text,
+    html,
+  })
+  return { delivered: true, dev: false }
+}
+
+interface ClientMailInput {
+  to: string
+  clientName: string
+  headline: string
+  message: string
+  portalUrl: string
+  office: OfficeConfig
+  ctaLabel?: string
+}
+
+// Generic client-facing notification (new chat message, new deadline, etc.),
+// not tied to a pipeline stage. Same branded template as stage notifications.
+export async function sendClientNotification(input: ClientMailInput): Promise<MailResult> {
+  const { to, clientName, headline, message, portalUrl, office, ctaLabel } = input
+  const subject = `${office.officeName} — ${headline}`
+  const html = renderEmail({ headline, clientName, message, portalUrl, office, ctaLabel })
+  const text = `${headline}\n\nOlá ${clientName},\n\n${message}\n\n${ctaLabel ?? 'Acompanhe seu caso'}: ${portalUrl}\n\n${office.officeName} · ${office.attorney}\n${office.phone} · ${office.email}`
 
   const t = transporter()
   if (!t) {

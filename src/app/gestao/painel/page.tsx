@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { StaffShell } from '@/components/staff/StaffShell'
 import { slaState } from '@/lib/case-utils'
-import { STAGE_KEYS, STAGE_LABELS, STAGE_SLA_HOURS, VISA_TYPES, type Client, type Message } from '@/types'
+import { STAGE_KEYS, STAGE_LABELS, VISA_TYPES, type Client } from '@/types'
 import { cn } from '@/lib/utils'
 
 function activeStage(c: Client) {
@@ -20,11 +20,7 @@ export default async function PainelPage() {
   if (!session) redirect('/gestao')
   if (session.role !== 'coordenador') redirect('/gestao/clientes')
 
-  const [clients, staff, messages] = await Promise.all([
-    db.clients.all(),
-    db.staff.all(),
-    db.messages.all(),
-  ])
+  const [clients, staff] = await Promise.all([db.clients.all(), db.staff.all()])
   const nameById = new Map(staff.map((m) => [m.id, m.name]))
   const now = new Date()
 
@@ -54,109 +50,6 @@ export default async function PainelPage() {
     name: m.name,
     count: active.filter((c) => c.assignedTo === m.id).length,
   }))
-
-  // ── KPIs do manual §11 (valores reais quando há dados) ──
-  const stageOf = (c: Client, k: string) => c.stages.find((s) => s.key === k)
-
-  const deliveryDays = clients
-    .map((c) => {
-      const env = stageOf(c, 'envio')?.completedAt
-      const start = stageOf(c, 'onboarding')?.startedAt ?? c.createdAt
-      return env ? (new Date(env).getTime() - new Date(start).getTime()) / 86_400_000 : null
-    })
-    .filter((d): d is number => d != null)
-  const avgDelivery = deliveryDays.length
-    ? Math.round(deliveryDays.reduce((a, b) => a + b, 0) / deliveryDays.length)
-    : null
-
-  let slaTotal = 0
-  let slaMet = 0
-  for (const c of clients) {
-    for (const s of c.stages) {
-      if (s.status === 'done' && s.startedAt && s.completedAt) {
-        const hrs = STAGE_SLA_HOURS[s.key]?.[c.urgent ? 'urgent' : 'normal'] ?? 0
-        if (hrs > 0) {
-          slaTotal++
-          const elapsed = (new Date(s.completedAt).getTime() - new Date(s.startedAt).getTime()) / 3_600_000
-          if (elapsed <= hrs) slaMet++
-        }
-      }
-    }
-  }
-  const pctSlaMet = slaTotal ? Math.round((slaMet / slaTotal) * 100) : null
-
-  const weekAgo = Date.now() - 7 * 86_400_000
-  const finishedWeek = clients.filter((c) => {
-    const env = stageOf(c, 'envio')?.completedAt
-    return env ? new Date(env).getTime() >= weekAgo : false
-  }).length
-
-  // Tempo médio de resposta ao cliente: gap entre uma mensagem do cliente e a
-  // próxima resposta da equipe (aproximação em horas corridas).
-  const msgsByClient = new Map<string, Message[]>()
-  for (const m of messages) {
-    const arr = msgsByClient.get(m.clientId) ?? []
-    arr.push(m)
-    msgsByClient.set(m.clientId, arr)
-  }
-  let respHoursTotal = 0
-  let respCount = 0
-  for (const arr of msgsByClient.values()) {
-    const sorted = [...arr].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-    let openAt: number | null = null
-    for (const m of sorted) {
-      if (m.sender === 'client') {
-        if (openAt == null) openAt = new Date(m.createdAt).getTime()
-      } else if (openAt != null) {
-        respHoursTotal += (new Date(m.createdAt).getTime() - openAt) / 3_600_000
-        respCount++
-        openAt = null
-      }
-    }
-  }
-  const avgResponseH = respCount ? respHoursTotal / respCount : null
-  const responseLabel =
-    avgResponseH == null
-      ? '—'
-      : avgResponseH < 1
-        ? `${Math.round(avgResponseH * 60)} min`
-        : `${Math.round(avgResponseH)}h`
-
-  const kpiBase = `${deliveryDays.length} concluído(s) · ${slaTotal} etapas medidas · ${respCount} respostas`
-
-  type KpiState = 'ok' | 'bad' | 'na'
-  const kpis: { label: string; value: string; target: string; state: KpiState }[] = [
-    {
-      label: 'Tempo médio de entrega',
-      value: avgDelivery == null ? '—' : `${avgDelivery} dias`,
-      target: '≤ 18 dias',
-      state: avgDelivery == null ? 'na' : avgDelivery <= 18 ? 'ok' : 'bad',
-    },
-    {
-      label: 'SLAs cumpridos',
-      value: pctSlaMet == null ? '—' : `${pctSlaMet}%`,
-      target: '≥ 95%',
-      state: pctSlaMet == null ? 'na' : pctSlaMet >= 95 ? 'ok' : 'bad',
-    },
-    {
-      label: 'Resposta ao cliente',
-      value: responseLabel,
-      target: '≤ 24h',
-      state: avgResponseH == null ? 'na' : avgResponseH <= 24 ? 'ok' : 'bad',
-    },
-    {
-      label: 'Finalizados (7 dias)',
-      value: String(finishedWeek),
-      target: 'meta da direção',
-      state: finishedWeek > 0 ? 'ok' : 'na',
-    },
-    { label: 'Sem erro na 1ª revisão', value: '—', target: '≥ 85%', state: 'na' },
-    { label: 'Com 3ª rodada de revisão', value: '—', target: '≤ 5%', state: 'na' },
-    { label: 'Retrabalho pós-envio', value: '—', target: '≤ 3%', state: 'na' },
-    { label: 'Cartas USCIS encaminhadas', value: '—', target: '100% em 4h', state: 'na' },
-    { label: 'Taxa de RFEs', value: '—', target: '≤ 10%', state: 'na' },
-    { label: 'Aprovação inicial', value: '—', target: '≥ 90%', state: 'na' },
-  ]
 
   const stat = (label: string, value: string | number, Icon: typeof Users, tone: string) => (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -229,7 +122,7 @@ export default async function PainelPage() {
           </section>
         </div>
 
-        {/* Breakdowns + KPI targets */}
+        {/* Breakdowns */}
         <aside className="space-y-6">
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="mb-3 text-sm font-semibold text-foreground">Por tipo de visto</h2>
@@ -256,51 +149,6 @@ export default async function PainelPage() {
                 <span className="text-muted-foreground">Tempo médio no pipeline</span>
                 <span className="font-medium text-foreground">{avgPipeline} dias</span>
               </li>
-            </ul>
-          </section>
-
-          <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="mb-1 text-sm font-semibold text-foreground">Indicadores (manual §11)</h2>
-            <p className="mb-3 text-xs text-muted-foreground">
-              Valores reais quando há dados; “—” aguarda histórico.
-              <br />
-              <span className="text-[11px]">Base: {kpiBase}</span>
-            </p>
-            <ul className="space-y-2 text-sm">
-              {kpis.map((k) => (
-                <li key={k.label} className="flex items-center justify-between gap-3">
-                  <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
-                    <span
-                      className={cn(
-                        'size-2 shrink-0 rounded-full',
-                        k.state === 'ok'
-                          ? 'bg-emerald-500'
-                          : k.state === 'bad'
-                            ? 'bg-destructive'
-                            : 'bg-muted-foreground/30',
-                      )}
-                    />
-                    <span className="truncate">{k.label}</span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1.5">
-                    <span
-                      className={cn(
-                        'text-sm font-semibold',
-                        k.state === 'ok'
-                          ? 'text-emerald-700'
-                          : k.state === 'bad'
-                            ? 'text-destructive'
-                            : 'text-foreground',
-                      )}
-                    >
-                      {k.value}
-                    </span>
-                    <span className="rounded bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                      {k.target}
-                    </span>
-                  </span>
-                </li>
-              ))}
             </ul>
           </section>
         </aside>

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
+import { sendClientNotification } from '@/lib/email'
 import type { Message } from '@/types'
 
 export async function POST(
@@ -30,5 +31,26 @@ export async function POST(
     createdAt: new Date().toISOString(),
   }
   await db.messages.add(msg)
-  return NextResponse.json({ ok: true }, { status: 201 })
+
+  // Reach the client by e-mail too — they aren't expected to watch the chat
+  // live. Best-effort: a mail failure must not fail the message send.
+  let mail: { delivered: boolean; dev: boolean } | null = null
+  if (client.email) {
+    try {
+      const office = await db.office.get()
+      mail = await sendClientNotification({
+        to: client.email,
+        clientName: client.fullName,
+        headline: 'Você recebeu uma nova mensagem',
+        message: t,
+        portalUrl: `${new URL(req.url).origin}/meu-caso`,
+        office,
+        ctaLabel: 'Abrir conversa',
+      })
+    } catch {
+      mail = null
+    }
+  }
+
+  return NextResponse.json({ ok: true, mail }, { status: 201 })
 }

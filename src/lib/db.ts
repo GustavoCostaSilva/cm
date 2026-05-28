@@ -338,6 +338,17 @@ export const db = {
         .order('created_at')
       return rows<Row>(data).map(toMessage)
     },
+    // Most recent messages sent BY clients, newest first — used to alert staff.
+    async recentFromClients(limit = 30): Promise<Message[]> {
+      await ensureSeeded()
+      const { data } = await sb()
+        .from('portal_messages')
+        .select('*')
+        .eq('sender', 'client')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      return rows<Row>(data).map(toMessage)
+    },
     async add(m: Message): Promise<void> {
       await sb().from('portal_messages').insert(fromMessage(m))
     },
@@ -369,6 +380,9 @@ export const db = {
     },
     async update(id: string, patch: Partial<StaffUser>): Promise<void> {
       await sb().from('portal_staff').update(fromStaff(patch)).eq('id', id)
+    },
+    async remove(id: string): Promise<void> {
+      await sb().from('portal_staff').delete().eq('id', id)
     },
   },
 

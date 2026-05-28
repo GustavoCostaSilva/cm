@@ -40,3 +40,36 @@ export async function PATCH(
   await db.staff.update(id, patch)
   return NextResponse.json({ ok: true })
 }
+
+// Permanently remove a staff member (coordenador only).
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getStaffSession()
+  if (!session || session.role !== 'coordenador') {
+    return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
+  }
+  const { id } = await params
+  if (id === session.sub) {
+    return NextResponse.json({ error: 'Você não pode excluir a própria conta.' }, { status: 400 })
+  }
+  const target = await db.staff.get(id)
+  if (!target) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+
+  // A case manager with clients still assigned must be reassigned first, so no
+  // client is left orphaned.
+  if (target.role === 'case_manager') {
+    const clients = await db.clients.all()
+    const assigned = clients.filter((c) => c.assignedTo === id).length
+    if (assigned > 0) {
+      return NextResponse.json(
+        { error: `Reatribua os ${assigned} cliente(s) deste case manager antes de excluir.` },
+        { status: 400 },
+      )
+    }
+  }
+
+  await db.staff.remove(id)
+  return NextResponse.json({ ok: true })
+}

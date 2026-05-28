@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { db } from '@/lib/db'
 import { getStaffSession } from '@/lib/server-session'
 import { canAccessClient } from '@/lib/perms'
+import { sendClientNotification } from '@/lib/email'
+import { formatDate } from '@/lib/case-utils'
 import type { Deadline, StageKey } from '@/types'
 import type { StaffSession } from '@/lib/session'
 
@@ -45,7 +47,30 @@ export async function POST(
     stageKey: (body.stageKey as StageKey | null) ?? null,
   }
   await db.deadlines.add(deadline)
-  return NextResponse.json({ ok: true, deadline }, { status: 201 })
+
+  // Optionally let the client know a new deadline was set (opt-in per request).
+  let mail: { delivered: boolean; dev: boolean } | null = null
+  if (Boolean(body.notify)) {
+    const client = await db.clients.get(id)
+    if (client?.email) {
+      try {
+        const office = await db.office.get()
+        mail = await sendClientNotification({
+          to: client.email,
+          clientName: client.fullName,
+          headline: 'Novo prazo no seu caso',
+          message: `${title}\nData: ${formatDate(dueDate)}`,
+          portalUrl: `${new URL(req.url).origin}/meu-caso`,
+          office,
+          ctaLabel: 'Ver meu caso',
+        })
+      } catch {
+        mail = null
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, deadline, mail }, { status: 201 })
 }
 
 export async function PATCH(
